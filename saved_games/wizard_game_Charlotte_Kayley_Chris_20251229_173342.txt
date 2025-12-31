@@ -1,0 +1,307 @@
+=== WIZARD CARD GAME SAVE FILE ===
+Title: Fairmont Day 2
+Saved: 2025-12-30 21:13:03
+Players: Charlotte, Kayley, Chris, Amin
+Round: 15 / 15
+Scores: {'Charlotte': 390, 'Kayley': 370, 'Chris': 400, 'Amin': 170}
+===================================
+
+--- JSON DATA (DO NOT EDIT BELOW) ---
+{
+  "title": "Fairmont Day 2",
+  "players": [
+    "Charlotte",
+    "Kayley",
+    "Chris",
+    "Amin"
+  ],
+  "player_colors": {
+    "Charlotte": "#FF6B6B",
+    "Kayley": "#f700ff",
+    "Chris": "#000000",
+    "Amin": "#20ff00"
+  },
+  "starting_dealer_index": 0,
+  "current_round": 15,
+  "game_data": {
+    "1": {
+      "Charlotte": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Kayley": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Chris": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Amin": {
+        "bid": 0,
+        "tricks": 1
+      }
+    },
+    "2": {
+      "Charlotte": {
+        "bid": 1,
+        "tricks": 0
+      },
+      "Kayley": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Chris": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Amin": {
+        "bid": 0,
+        "tricks": 0
+      }
+    },
+    "3": {
+      "Charlotte": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Kayley": {
+        "bid": 1,
+        "tricks": 0
+      },
+      "Chris": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 0,
+        "tricks": 0
+      }
+    },
+    "4": {
+      "Charlotte": {
+        "bid": 1,
+        "tricks": 0
+      },
+      "Kayley": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Chris": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 0,
+        "tricks": 0
+      }
+    },
+    "5": {
+      "Charlotte": {
+        "bid": 3,
+        "tricks": 3
+      },
+      "Kayley": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Chris": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 1,
+        "tricks": 0
+      }
+    },
+    "6": {
+      "Charlotte": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Kayley": {
+        "bid": 1,
+        "tricks": 0
+      },
+      "Chris": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 2,
+        "tricks": 4
+      }
+    },
+    "7": {
+      "Charlotte": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Kayley": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Chris": {
+        "bid": 3,
+        "tricks": 3
+      },
+      "Amin": {
+        "bid": 4,
+        "tricks": 3
+      }
+    },
+    "8": {
+      "Charlotte": {
+        "bid": 3,
+        "tricks": 4
+      },
+      "Kayley": {
+        "bid": 2,
+        "tricks": 3
+      },
+      "Chris": {
+        "bid": 1,
+        "tricks": 0
+      },
+      "Amin": {
+        "bid": 1,
+        "tricks": 1
+      }
+    },
+    "9": {
+      "Charlotte": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Kayley": {
+        "bid": 3,
+        "tricks": 3
+      },
+      "Chris": {
+        "bid": 5,
+        "tricks": 4
+      },
+      "Amin": {
+        "bid": 2,
+        "tricks": 0
+      }
+    },
+    "10": {
+      "Charlotte": {
+        "bid": 6,
+        "tricks": 4
+      },
+      "Kayley": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Chris": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Amin": {
+        "bid": 4,
+        "tricks": 4
+      }
+    },
+    "11": {
+      "Charlotte": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Kayley": {
+        "bid": 4,
+        "tricks": 4
+      },
+      "Chris": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 4,
+        "tricks": 3
+      }
+    },
+    "12": {
+      "Charlotte": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Kayley": {
+        "bid": 4,
+        "tricks": 3
+      },
+      "Chris": {
+        "bid": 4,
+        "tricks": 3
+      },
+      "Amin": {
+        "bid": 4,
+        "tricks": 4
+      }
+    },
+    "13": {
+      "Charlotte": {
+        "bid": 3,
+        "tricks": 3
+      },
+      "Kayley": {
+        "bid": 5,
+        "tricks": 6
+      },
+      "Chris": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Amin": {
+        "bid": 4,
+        "tricks": 4
+      }
+    },
+    "14": {
+      "Charlotte": {
+        "bid": 5,
+        "tricks": 5
+      },
+      "Kayley": {
+        "bid": 4,
+        "tricks": 4
+      },
+      "Chris": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 4,
+        "tricks": 3
+      }
+    },
+    "15": {
+      "Charlotte": {
+        "bid": 4,
+        "tricks": 4
+      },
+      "Kayley": {
+        "bid": 4,
+        "tricks": 4
+      },
+      "Chris": {
+        "bid": 4,
+        "tricks": 4
+      },
+      "Amin": {
+        "bid": 4,
+        "tricks": 3
+      }
+    }
+  },
+  "max_rounds": 15,
+  "game_started": true,
+  "saved_at": "2025-12-30T21:13:03.833162",
+  "total_scores": {
+    "Charlotte": 390,
+    "Kayley": 370,
+    "Chris": 400,
+    "Amin": 170
+  }
+}
