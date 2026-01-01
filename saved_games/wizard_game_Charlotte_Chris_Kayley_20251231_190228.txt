@@ -1,0 +1,127 @@
+=== WIZARD CARD GAME SAVE FILE ===
+Title: Game: Charlotte, Chris, Kayley, Amin
+Saved: 2025-12-31 19:12:28
+Players: Charlotte, Chris, Kayley, Amin
+Round: 5 / 15
+Scores: {'Charlotte': 100, 'Chris': 30, 'Kayley': 100, 'Amin': 40}
+===================================
+
+--- JSON DATA (DO NOT EDIT BELOW) ---
+{
+  "title": "Game: Charlotte, Chris, Kayley, Amin",
+  "players": [
+    "Charlotte",
+    "Chris",
+    "Kayley",
+    "Amin"
+  ],
+  "player_colors": {
+    "Charlotte": "#FF6B6B",
+    "Chris": "#000000",
+    "Kayley": "#fd08df",
+    "Amin": "#00faff"
+  },
+  "starting_dealer_index": 0,
+  "current_round": 5,
+  "game_data": {
+    "1": {
+      "Charlotte": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Chris": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Kayley": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Amin": {
+        "bid": 1,
+        "tricks": 0
+      }
+    },
+    "2": {
+      "Charlotte": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Chris": {
+        "bid": 0,
+        "tricks": 1
+      },
+      "Kayley": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Amin": {
+        "bid": 0,
+        "tricks": 0
+      }
+    },
+    "3": {
+      "Charlotte": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Chris": {
+        "bid": 1,
+        "tricks": 0
+      },
+      "Kayley": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Amin": {
+        "bid": 2,
+        "tricks": 2
+      }
+    },
+    "4": {
+      "Charlotte": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Chris": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Kayley": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Amin": {
+        "bid": 3,
+        "tricks": 2
+      }
+    },
+    "5": {
+      "Charlotte": {
+        "bid": null,
+        "tricks": null
+      },
+      "Chris": {
+        "bid": null,
+        "tricks": null
+      },
+      "Kayley": {
+        "bid": null,
+        "tricks": null
+      },
+      "Amin": {
+        "bid": null,
+        "tricks": null
+      }
+    }
+  },
+  "max_rounds": 15,
+  "game_started": true,
+  "saved_at": "2025-12-31T19:12:28.067275",
+  "total_scores": {
+    "Charlotte": 100,
+    "Chris": 30,
+    "Kayley": 100,
+    "Amin": 40
+  }
+}
