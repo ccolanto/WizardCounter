@@ -9,6 +9,211 @@ from pathlib import Path
 
 st.set_page_config(page_title="The Grand Fardini", page_icon="🧙", layout="wide")
 
+# Touchscreen-optimized CSS
+st.markdown("""
+<style>
+    /* ===== BUTTONS - Larger touch targets ===== */
+    .stButton > button {
+        min-height: 54px !important;
+        font-size: 1.1rem !important;
+        padding: 0.75rem 1.5rem !important;
+        border-radius: 12px !important;
+        margin: 6px 0 !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Primary buttons even more prominent */
+    .stButton > button[kind="primary"],
+    .stButton > button[data-testid="baseButton-primary"] {
+        min-height: 60px !important;
+        font-size: 1.25rem !important;
+        font-weight: 600 !important;
+    }
+    
+    /* ===== NUMBER INPUTS - Larger steppers ===== */
+    .stNumberInput > div > div > input {
+        font-size: 1.5rem !important;
+        height: 54px !important;
+        text-align: center !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Make +/- stepper buttons properly sized and centered */
+    .stNumberInput button {
+        min-width: 48px !important;
+        min-height: 48px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+    }
+    
+    .stNumberInput button svg {
+        width: 18px !important;
+        height: 18px !important;
+        position: relative !important;
+        top: -5px !important;
+    }
+    
+    .stNumberInput [data-testid="stNumberInputStepUp"],
+    .stNumberInput [data-testid="stNumberInputStepDown"] {
+        width: 48px !important;
+        height: 48px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* ===== RADIO BUTTONS - Tab navigation ===== */
+    .stRadio > div {
+        gap: 8px !important;
+    }
+    
+    .stRadio > div > label {
+        padding: 14px 24px !important;
+        font-size: 1.15rem !important;
+        border-radius: 12px !important;
+        min-height: 52px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: #f0f2f6 !important;
+        border: 2px solid transparent !important;
+        transition: all 0.15s ease !important;
+        font-weight: 500 !important;
+    }
+    
+    .stRadio > div > label:hover {
+        background: #e0e2e6 !important;
+        transform: scale(1.02) !important;
+    }
+    
+    .stRadio > div > label[data-checked="true"],
+    .stRadio > div > label:has(input:checked) {
+        background: #ff4b4b !important;
+        color: white !important;
+        border-color: #ff4b4b !important;
+    }
+    
+    /* ===== SELECT BOXES ===== */
+    .stSelectbox > div > div {
+        min-height: 52px !important;
+        font-size: 1.1rem !important;
+    }
+    
+    .stSelectbox [data-baseweb="select"] {
+        min-height: 52px !important;
+    }
+    
+    /* ===== TEXT INPUTS ===== */
+    .stTextInput > div > div > input {
+        min-height: 52px !important;
+        font-size: 1.1rem !important;
+        padding: 12px !important;
+    }
+    
+    /* ===== CHECKBOXES - Larger tap targets ===== */
+    .stCheckbox > label {
+        padding: 10px 0 !important;
+        min-height: 48px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    .stCheckbox > label > span {
+        font-size: 1.1rem !important;
+    }
+    
+    .stCheckbox > label > div[data-testid="stCheckbox"] {
+        width: 26px !important;
+        height: 26px !important;
+    }
+    
+    /* ===== EXPANDERS ===== */
+    .streamlit-expanderHeader {
+        font-size: 1.15rem !important;
+        min-height: 52px !important;
+        padding: 12px !important;
+    }
+    
+    /* ===== SPACING & LAYOUT ===== */
+    [data-testid="column"] {
+        padding: 0 10px !important;
+    }
+    
+    /* More space between form elements */
+    .stForm > div > div {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* ===== SUBHEADERS & TEXT ===== */
+    h2, .stSubheader {
+        font-size: 1.6rem !important;
+        margin-top: 1.5rem !important;
+    }
+    
+    h3 {
+        font-size: 1.3rem !important;
+    }
+    
+    /* Player name labels larger */
+    .stNumberInput label, .stTextInput label {
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+    }
+    
+    /* ===== TOUCH FEEDBACK ===== */
+    button:active, .stButton > button:active {
+        transform: scale(0.97) !important;
+        transition: transform 0.1s !important;
+    }
+    
+    /* ===== DATA TABLES ===== */
+    .stDataFrame td, .stDataFrame th {
+        font-size: 1rem !important;
+        padding: 12px 8px !important;
+    }
+    
+    /* ===== ALERTS & INFO BOXES ===== */
+    .stAlert, .stInfo, .stWarning, .stSuccess, .stError {
+        padding: 16px !important;
+        font-size: 1.05rem !important;
+        border-radius: 10px !important;
+    }
+    
+    /* ===== DIALOG/MODAL BUTTONS ===== */
+    [data-testid="stModal"] button {
+        min-height: 50px !important;
+        min-width: 50px !important;
+    }
+    
+    /* ===== COLOR PICKER ===== */
+    .stColorPicker > div {
+        min-height: 48px !important;
+    }
+    
+    /* ===== SLIDER ===== */
+    .stSlider > div {
+        padding: 10px 0 !important;
+    }
+    
+    .stSlider [data-testid="stThumbValue"] {
+        font-size: 1.1rem !important;
+    }
+    
+    /* ===== TABS CONTAINER PADDING ===== */
+    .block-container {
+        padding: 1rem 2rem 3rem 2rem !important;
+    }
+    
+    /* ===== DOWNLOAD BUTTON ===== */
+    .stDownloadButton > button {
+        min-height: 54px !important;
+        font-size: 1.1rem !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Save directory for game files
 SAVE_DIR = Path(__file__).parent / "saved_games"
 SAVE_DIR.mkdir(exist_ok=True)
@@ -96,12 +301,17 @@ def calculate_score(bid, tricks):
         return -10 * abs(bid - tricks)
 
 def get_total_scores():
-    """Calculate total scores for all players."""
+    """Calculate total scores for all players (only completed rounds, not current round unless game is finished)."""
     totals = {player: 0 for player in st.session_state.players}
+    current_round = st.session_state.get('current_round', 1)
+    game_finished = st.session_state.get('game_finished', False)
+    
     for round_num, round_data in st.session_state.game_data.items():
-        for player, data in round_data.items():
-            if data['bid'] is not None and data['tricks'] is not None:
-                totals[player] += calculate_score(data['bid'], data['tricks'])
+        # Count rounds before the current round, OR all rounds if game is finished
+        if round_num < current_round or game_finished:
+            for player, data in round_data.items():
+                if data['bid'] is not None and data['tricks'] is not None:
+                    totals[player] += calculate_score(data['bid'], data['tricks'])
     return totals
 
 def analyze_game_stats():
@@ -1271,7 +1481,11 @@ else:
         scoreboard_data = []
         running_totals = {player: 0 for player in st.session_state.players}
         
-        for round_num in range(1, st.session_state.current_round + 1):
+        # Only show completed rounds (not current round unless game is finished)
+        game_finished = st.session_state.get('game_finished', False)
+        max_round_to_show = st.session_state.current_round if game_finished else st.session_state.current_round - 1
+        
+        for round_num in range(1, max_round_to_show + 1):
             if round_num in st.session_state.game_data:
                 row = {'Round': round_num}
                 for player in st.session_state.players:
@@ -1309,7 +1523,7 @@ else:
             chart_data[player] = [0]
         
         running_totals_chart = {player: 0 for player in st.session_state.players}
-        for round_num in range(1, st.session_state.current_round + 1):
+        for round_num in range(1, max_round_to_show + 1):
             if round_num in st.session_state.game_data:
                 # Check if this round is complete (all players have bid and tricks)
                 round_complete = all(
