@@ -1006,21 +1006,28 @@ else:
                        unsafe_allow_html=True)
     st.markdown("---")
     
-    # Tab selection using radio buttons with callback for reliable updates
+    # Tab selection using radio buttons
     tab_options = ["🎯 Bids", "🃏 Tricks Won", "📊 Scoreboard"]
     
-    def update_tab():
-        st.session_state.active_tab = tab_options.index(st.session_state.tab_selector)
+    # Check for pending tab change (set before rerun)
+    if "pending_tab" in st.session_state:
+        st.session_state.active_tab = st.session_state.pending_tab
+        del st.session_state.pending_tab
     
-    st.radio(
+    # Use a unique key based on current active_tab to force widget recreation
+    selected = st.radio(
         "Navigate", 
         tab_options, 
         index=st.session_state.active_tab, 
         horizontal=True, 
-        label_visibility="collapsed", 
-        key="tab_selector",
-        on_change=update_tab
+        label_visibility="collapsed"
     )
+    
+    # Update active_tab based on selection
+    new_tab = tab_options.index(selected)
+    if new_tab != st.session_state.active_tab:
+        st.session_state.active_tab = new_tab
+        st.rerun()
     
     if st.session_state.active_tab == 0:  # Bids tab
         st.subheader("Enter Bids")
@@ -1073,10 +1080,7 @@ else:
         # Button to go to Tricks tab
         st.markdown("---")
         if st.button("Go to Tricks 🃏 ➡️", type="primary"):
-            st.session_state.active_tab = 1
-            # Clear radio widget state so it syncs with active_tab
-            if "tab_selector" in st.session_state:
-                del st.session_state.tab_selector
+            st.session_state.pending_tab = 1
             st.rerun()
     
     elif st.session_state.active_tab == 1:  # Tricks tab
@@ -1148,10 +1152,7 @@ else:
                         st.session_state.round_roasts[current_round] = "[API not verified - please verify your API key]"
                     
                     st.session_state.current_round += 1
-                    st.session_state.active_tab = 0  # Switch to Bids tab
-                    # Clear radio widget state so it syncs with active_tab
-                    if "tab_selector" in st.session_state:
-                        del st.session_state.tab_selector
+                    st.session_state.pending_tab = 0  # Switch to Bids tab on rerun
                     # Initialize next round if needed
                     if st.session_state.current_round not in st.session_state.game_data:
                         st.session_state.game_data[st.session_state.current_round] = {
@@ -1200,10 +1201,7 @@ else:
                         
                         st.session_state.game_finished = True
                         st.session_state.show_celebration = True  # Trigger confetti
-                        st.session_state.active_tab = 2  # Switch to Scoreboard to show celebration
-                        # Clear radio widget state so it syncs with active_tab
-                        if "tab_selector" in st.session_state:
-                            del st.session_state.tab_selector
+                        st.session_state.pending_tab = 2  # Switch to Scoreboard on rerun
                         st.rerun()
                 elif st.session_state.get('game_finished', False):
                     st.success("🏆 Game Complete! View results in Scoreboard tab.")
