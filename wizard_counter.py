@@ -885,6 +885,7 @@ st.markdown("---")
 # Sidebar for game setup
 with st.sidebar:
     st.header("⚙️ Game Setup")
+    st.caption("Version 0.2")
     
     if not st.session_state.game_started:
         st.subheader("Add Players")

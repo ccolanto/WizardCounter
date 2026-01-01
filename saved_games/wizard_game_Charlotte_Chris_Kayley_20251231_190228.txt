@@ -1,9 +1,9 @@
 === WIZARD CARD GAME SAVE FILE ===
 Title: Game: Charlotte, Chris, Kayley, Amin
-Saved: 2025-12-31 19:12:28
+Saved: 2025-12-31 19:57:56
 Players: Charlotte, Chris, Kayley, Amin
-Round: 5 / 15
-Scores: {'Charlotte': 100, 'Chris': 30, 'Kayley': 100, 'Amin': 40}
+Round: 12 / 15
+Scores: {'Charlotte': 260, 'Chris': 90, 'Kayley': 200, 'Amin': 250}
 ===================================
 
 --- JSON DATA (DO NOT EDIT BELOW) ---
@@ -22,7 +22,7 @@ Scores: {'Charlotte': 100, 'Chris': 30, 'Kayley': 100, 'Amin': 40}
     "Amin": "#00faff"
   },
   "starting_dealer_index": 0,
-  "current_round": 5,
+  "current_round": 12,
   "game_data": {
     "1": {
       "Charlotte": {
@@ -98,6 +98,132 @@ Scores: {'Charlotte': 100, 'Chris': 30, 'Kayley': 100, 'Amin': 40}
     },
     "5": {
       "Charlotte": {
+        "bid": 1,
+        "tricks": 2
+      },
+      "Chris": {
+        "bid": 0,
+        "tricks": 1
+      },
+      "Kayley": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 1,
+        "tricks": 0
+      }
+    },
+    "6": {
+      "Charlotte": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Chris": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Kayley": {
+        "bid": 0,
+        "tricks": 0
+      },
+      "Amin": {
+        "bid": 2,
+        "tricks": 3
+      }
+    },
+    "7": {
+      "Charlotte": {
+        "bid": 2,
+        "tricks": 3
+      },
+      "Chris": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Kayley": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Amin": {
+        "bid": 2,
+        "tricks": 2
+      }
+    },
+    "8": {
+      "Charlotte": {
+        "bid": 1,
+        "tricks": 1
+      },
+      "Chris": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Kayley": {
+        "bid": 3,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 3,
+        "tricks": 3
+      }
+    },
+    "9": {
+      "Charlotte": {
+        "bid": 4,
+        "tricks": 4
+      },
+      "Chris": {
+        "bid": 2,
+        "tricks": 1
+      },
+      "Kayley": {
+        "bid": 3,
+        "tricks": 3
+      },
+      "Amin": {
+        "bid": 1,
+        "tricks": 1
+      }
+    },
+    "10": {
+      "Charlotte": {
+        "bid": 2,
+        "tricks": 1
+      },
+      "Chris": {
+        "bid": 3,
+        "tricks": 4
+      },
+      "Kayley": {
+        "bid": 3,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 3,
+        "tricks": 3
+      }
+    },
+    "11": {
+      "Charlotte": {
+        "bid": 4,
+        "tricks": 4
+      },
+      "Chris": {
+        "bid": 0,
+        "tricks": 1
+      },
+      "Kayley": {
+        "bid": 4,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 4,
+        "tricks": 4
+      }
+    },
+    "12": {
+      "Charlotte": {
         "bid": null,
         "tricks": null
       },
@@ -117,11 +243,11 @@ Scores: {'Charlotte': 100, 'Chris': 30, 'Kayley': 100, 'Amin': 40}
   },
   "max_rounds": 15,
   "game_started": true,
-  "saved_at": "2025-12-31T19:12:28.067275",
+  "saved_at": "2025-12-31T19:57:56.695168",
   "total_scores": {
-    "Charlotte": 100,
-    "Chris": 30,
-    "Kayley": 100,
-    "Amin": 40
+    "Charlotte": 260,
+    "Chris": 90,
+    "Kayley": 200,
+    "Amin": 250
   }
 }
