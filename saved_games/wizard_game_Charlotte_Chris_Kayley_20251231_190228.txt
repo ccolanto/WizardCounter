@@ -1,9 +1,9 @@
 === WIZARD CARD GAME SAVE FILE ===
 Title: Game: Charlotte, Chris, Kayley, Amin
-Saved: 2025-12-31 19:57:56
+Saved: 2025-12-31 23:13:23
 Players: Charlotte, Chris, Kayley, Amin
-Round: 12 / 15
-Scores: {'Charlotte': 260, 'Chris': 90, 'Kayley': 200, 'Amin': 250}
+Round: 15 / 15
+Scores: {'Charlotte': 350, 'Chris': 160, 'Kayley': 290, 'Amin': 290}
 ===================================
 
 --- JSON DATA (DO NOT EDIT BELOW) ---
@@ -22,7 +22,7 @@ Scores: {'Charlotte': 260, 'Chris': 90, 'Kayley': 200, 'Amin': 250}
     "Amin": "#00faff"
   },
   "starting_dealer_index": 0,
-  "current_round": 12,
+  "current_round": 15,
   "game_data": {
     "1": {
       "Charlotte": {
@@ -224,6 +224,60 @@ Scores: {'Charlotte': 260, 'Chris': 90, 'Kayley': 200, 'Amin': 250}
     },
     "12": {
       "Charlotte": {
+        "bid": 4,
+        "tricks": 4
+      },
+      "Chris": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Kayley": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Amin": {
+        "bid": 5,
+        "tricks": 4
+      }
+    },
+    "13": {
+      "Charlotte": {
+        "bid": 3,
+        "tricks": 2
+      },
+      "Chris": {
+        "bid": 3,
+        "tricks": 2
+      },
+      "Kayley": {
+        "bid": 4,
+        "tricks": 4
+      },
+      "Amin": {
+        "bid": 4,
+        "tricks": 5
+      }
+    },
+    "14": {
+      "Charlotte": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Chris": {
+        "bid": 2,
+        "tricks": 2
+      },
+      "Kayley": {
+        "bid": 5,
+        "tricks": 6
+      },
+      "Amin": {
+        "bid": 4,
+        "tricks": 4
+      }
+    },
+    "15": {
+      "Charlotte": {
         "bid": null,
         "tricks": null
       },
@@ -243,11 +297,11 @@ Scores: {'Charlotte': 260, 'Chris': 90, 'Kayley': 200, 'Amin': 250}
   },
   "max_rounds": 15,
   "game_started": true,
-  "saved_at": "2025-12-31T19:57:56.695168",
+  "saved_at": "2025-12-31T23:13:23.790824",
   "total_scores": {
-    "Charlotte": 260,
-    "Chris": 90,
-    "Kayley": 200,
-    "Amin": 250
+    "Charlotte": 350,
+    "Chris": 160,
+    "Kayley": 290,
+    "Amin": 290
   }
 }
