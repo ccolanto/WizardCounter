@@ -52,7 +52,7 @@ st.markdown("""
         width: 18px !important;
         height: 18px !important;
         position: relative !important;
-        top: -5px !important;
+        top: -10px !important;
     }
     
     .stNumberInput [data-testid="stNumberInputStepUp"],
@@ -885,6 +885,7 @@ st.markdown("---")
 # Sidebar for game setup
 with st.sidebar:
     st.header("⚙️ Game Setup")
+    st.caption("Version 0.2")
     
     if not st.session_state.game_started:
         st.subheader("Add Players")
