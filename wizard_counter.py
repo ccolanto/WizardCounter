@@ -623,7 +623,7 @@ def verify_gemini_api(api_key):
         if "API_KEY_INVALID" in error_msg or "invalid" in error_msg.lower():
             return False, "Invalid API key. Please check your key."
         elif "quota" in error_msg.lower():
-            return False, "API quota exceeded. Try again later."
+            return False, "API quota exceeded. Try another model in the dropdown below."
         else:
             return False, f"Connection error: {error_msg[:100]}"
 
