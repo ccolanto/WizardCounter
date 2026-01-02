@@ -1,6 +1,6 @@
 === WIZARD CARD GAME SAVE FILE ===
 Title: Game: Charlotte, Chris, Kayley, Amin
-Saved: 2025-12-31 23:13:23
+Saved: 2026-01-01 22:19:50
 Players: Charlotte, Chris, Kayley, Amin
 Round: 15 / 15
 Scores: {'Charlotte': 350, 'Chris': 160, 'Kayley': 290, 'Amin': 290}
@@ -279,25 +279,25 @@ Scores: {'Charlotte': 350, 'Chris': 160, 'Kayley': 290, 'Amin': 290}
     "15": {
       "Charlotte": {
         "bid": null,
-        "tricks": null
+        "tricks": 0
       },
       "Chris": {
         "bid": null,
-        "tricks": null
+        "tricks": 0
       },
       "Kayley": {
         "bid": null,
-        "tricks": null
+        "tricks": 0
       },
       "Amin": {
         "bid": null,
-        "tricks": null
+        "tricks": 0
       }
     }
   },
   "max_rounds": 15,
   "game_started": true,
-  "saved_at": "2025-12-31T23:13:23.790824",
+  "saved_at": "2026-01-01T22:19:50.855191",
   "total_scores": {
     "Charlotte": 350,
     "Chris": 160,

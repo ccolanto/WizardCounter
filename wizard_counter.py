@@ -3,9 +3,17 @@ import pandas as pd
 import altair as alt
 import json
 import os
+import re
 import requests
 from datetime import datetime
 from pathlib import Path
+
+# Google Gemini API
+try:
+    from google import genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
 
 st.set_page_config(page_title="The Grand Fardini", page_icon="🧙", layout="wide")
 
@@ -218,26 +226,46 @@ st.markdown("""
 SAVE_DIR = Path(__file__).parent / "saved_games"
 SAVE_DIR.mkdir(exist_ok=True)
 
-# API key config file
+# API key config files (stored locally, NOT committed to git)
+NVIDIA_API_KEY_FILE = Path(__file__).parent / ".nvidia_api_key"
+GEMINI_API_KEY_FILE = Path(__file__).parent / ".gemini_api_key"
+# Legacy file for backward compatibility
 API_KEY_FILE = Path(__file__).parent / ".api_key"
 
-def load_saved_api_key():
+def load_saved_api_key(provider="nvidia"):
     """Load the API key from the config file if it exists."""
-    if API_KEY_FILE.exists():
+    if provider == "gemini":
+        key_file = GEMINI_API_KEY_FILE
+    else:
+        key_file = NVIDIA_API_KEY_FILE
+        # Check legacy file if new file doesn't exist
+        if not key_file.exists() and API_KEY_FILE.exists():
+            key_file = API_KEY_FILE
+    
+    if key_file.exists():
         try:
-            with open(API_KEY_FILE, 'r') as f:
+            with open(key_file, 'r') as f:
                 return f.read().strip()
         except Exception:
             pass
     return ""
 
-def save_api_key(api_key):
+def save_api_key(api_key, provider="nvidia"):
     """Save the API key to a config file."""
+    if provider == "gemini":
+        key_file = GEMINI_API_KEY_FILE
+    else:
+        key_file = NVIDIA_API_KEY_FILE
+    
     try:
-        with open(API_KEY_FILE, 'w') as f:
+        with open(key_file, 'w') as f:
             f.write(api_key)
     except Exception:
         pass
+
+# API Provider Configuration
+API_PROVIDERS = ["Google Gemini (Free)", "NVIDIA"]
+DEFAULT_PROVIDER = "Google Gemini (Free)"
 
 # NVIDIA API Configuration
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
@@ -246,7 +274,16 @@ NVIDIA_MODELS = {
     "Llama 3.1 70B (Fast)": "meta/llama-3.1-70b-instruct",
     "Llama 3.1 8B (Fastest)": "meta/llama-3.1-8b-instruct",
 }
-DEFAULT_MODEL = "meta/llama-3.1-70b-instruct"  # Faster default
+DEFAULT_NVIDIA_MODEL = "meta/llama-3.1-70b-instruct"
+
+# Google Gemini API Configuration
+GEMINI_MODELS = {
+    "Gemini 3.0 Flash (Newest, Best)": "gemini-3.0-flash",
+    "Gemini 2.5 Flash (Fast & Smart)": "gemini-2.5-flash",
+    "Gemini 2.5 Flash Lite (Faster, Less Smart)": "gemini-2.5-flash-lite",
+    "Gemma 3 27B (Unlimited, Lower Quality)": "gemma-3-27b-it",
+}
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 
 # Default colors for new players
 DEFAULT_COLORS = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F"]
@@ -274,14 +311,20 @@ if 'shot_players' not in st.session_state:
     st.session_state.shot_players = []  # Players who need to take a shot
 if 'round_roasts' not in st.session_state:
     st.session_state.round_roasts = {}  # {round_num: roast_text}
+if 'api_provider' not in st.session_state:
+    st.session_state.api_provider = DEFAULT_PROVIDER
 if 'nvidia_api_key' not in st.session_state:
-    st.session_state.nvidia_api_key = load_saved_api_key()
+    st.session_state.nvidia_api_key = load_saved_api_key("nvidia")
+if 'gemini_api_key' not in st.session_state:
+    st.session_state.gemini_api_key = load_saved_api_key("gemini")
 if 'enable_roasts' not in st.session_state:
     st.session_state.enable_roasts = False
 if 'api_verified' not in st.session_state:
     st.session_state.api_verified = False
-if 'selected_model' not in st.session_state:
-    st.session_state.selected_model = DEFAULT_MODEL
+if 'selected_nvidia_model' not in st.session_state:
+    st.session_state.selected_nvidia_model = DEFAULT_NVIDIA_MODEL
+if 'selected_gemini_model' not in st.session_state:
+    st.session_state.selected_gemini_model = DEFAULT_GEMINI_MODEL
 if 'game_finished' not in st.session_state:
     st.session_state.game_finished = False
 if 'show_celebration' not in st.session_state:
@@ -448,7 +491,7 @@ def analyze_game_stats():
 
 def generate_game_summary(stats):
     """Use LLM to generate an engaging end-game summary."""
-    if not st.session_state.nvidia_api_key or not st.session_state.api_verified:
+    if not st.session_state.api_verified:
         return None
     
     players = st.session_state.players
@@ -522,31 +565,8 @@ Write an exciting, dramatic game summary (3-4 paragraphs) that:
 
 Be entertaining, use their names, reference specific stats. Make it feel like a sports broadcast recap!"""
 
-    try:
-        response = requests.post(
-            NVIDIA_API_URL,
-            headers={
-                "Authorization": f"Bearer {st.session_state.nvidia_api_key}",
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            json={
-                "model": st.session_state.selected_model,
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 800,
-                "temperature": 0.9,
-                "stream": False
-            },
-            timeout=120  # Game summary needs more time for detailed analysis
-        )
-        
-        if response.status_code == 200:
-            result = response.json()
-            return result["choices"][0]["message"]["content"]
-        else:
-            return None
-    except Exception as e:
-        return None
+    content, error = generate_ai_content(prompt, max_tokens=800, temperature=0.9, timeout=120)
+    return content
 
 def verify_nvidia_api(api_key):
     """Verify that the NVIDIA API key is working."""
@@ -559,7 +579,7 @@ def verify_nvidia_api(api_key):
                 "Accept": "application/json"
             },
             json={
-                "model": st.session_state.selected_model,
+                "model": st.session_state.selected_nvidia_model,
                 "messages": [{"role": "user", "content": "Say 'API working' in exactly 2 words."}],
                 "max_tokens": 50,
                 "temperature": 0.5,
@@ -575,7 +595,7 @@ def verify_nvidia_api(api_key):
         elif response.status_code == 403:
             return False, "Access denied. Check your API key permissions."
         elif response.status_code == 404:
-            return False, f"Model not found. Check model name: {st.session_state.selected_model}"
+            return False, f"Model not found. Check model name: {st.session_state.selected_nvidia_model}"
         else:
             return False, f"API error: {response.status_code} - {response.text[:200]}"
     except requests.exceptions.Timeout:
@@ -583,9 +603,93 @@ def verify_nvidia_api(api_key):
     except Exception as e:
         return False, f"Connection error: {str(e)[:100]}"
 
+def verify_gemini_api(api_key):
+    """Verify that the Google Gemini API key is working."""
+    if not GEMINI_AVAILABLE:
+        return False, "Google Gemini library not installed. Run: pip install google-genai"
+    
+    try:
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model=st.session_state.selected_gemini_model,
+            contents="Say 'API working' in exactly 2 words."
+        )
+        if response and response.text:
+            return True, "API key verified successfully!"
+        else:
+            return False, "API returned empty response."
+    except Exception as e:
+        error_msg = str(e)
+        if "API_KEY_INVALID" in error_msg or "invalid" in error_msg.lower():
+            return False, "Invalid API key. Please check your key."
+        elif "quota" in error_msg.lower():
+            return False, "API quota exceeded. Try again later."
+        else:
+            return False, f"Connection error: {error_msg[:100]}"
+
+def generate_ai_content(prompt, max_tokens=500, temperature=0.9, timeout=60):
+    """Generate content using the selected AI provider (Gemini or NVIDIA)."""
+    provider = st.session_state.api_provider
+    
+    if provider == "Google Gemini (Free)":
+        if not GEMINI_AVAILABLE:
+            return None, "Google Gemini library not installed"
+        if not st.session_state.gemini_api_key:
+            return None, "No Gemini API key configured"
+        
+        try:
+            client = genai.Client(api_key=st.session_state.gemini_api_key)
+            response = client.models.generate_content(
+                model=st.session_state.selected_gemini_model,
+                contents=prompt
+            )
+            if response and response.text:
+                return response.text, None
+            else:
+                return None, "Empty response from Gemini"
+        except Exception as e:
+            return None, f"Gemini error: {str(e)[:100]}"
+    
+    else:  # NVIDIA
+        if not st.session_state.nvidia_api_key:
+            return None, "No NVIDIA API key configured"
+        
+        try:
+            response = requests.post(
+                NVIDIA_API_URL,
+                headers={
+                    "Authorization": f"Bearer {st.session_state.nvidia_api_key}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                json={
+                    "model": st.session_state.selected_nvidia_model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "stream": False
+                },
+                timeout=timeout
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                message = result.get("choices", [{}])[0].get("message", {})
+                content = message.get("content") or message.get("reasoning_content") or ""
+                if content:
+                    return content, None
+                else:
+                    return None, "Empty response from NVIDIA"
+            else:
+                return None, f"NVIDIA API error: {response.status_code}"
+        except requests.exceptions.Timeout:
+            return None, "Request timed out"
+        except Exception as e:
+            return None, f"NVIDIA error: {str(e)[:100]}"
+
 def generate_roasts(round_num):
-    """Generate roasts for players based on their full game history using NVIDIA API."""
-    if not st.session_state.nvidia_api_key or not st.session_state.enable_roasts or not st.session_state.api_verified:
+    """Generate roasts for players based on their full game history using AI."""
+    if not st.session_state.enable_roasts or not st.session_state.api_verified:
         return None
     
     # Build comprehensive game history for each player
@@ -668,67 +772,26 @@ PLAYER_NAME: [roast]
 
 Be savage but friendly. Reference specific stats, patterns, or memorable moments from their history. Keep each roast short and punchy."""
 
-    try:
-        response = requests.post(
-            NVIDIA_API_URL,
-            headers={
-                "Authorization": f"Bearer {st.session_state.nvidia_api_key}",
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            json={
-                "model": st.session_state.selected_model,
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 500,
-                "temperature": 0.9,
-                "stream": False
-            },
-            timeout=60  # Timeout for roast generation
-        )
-        
-        if response.status_code == 200:
-            result = response.json()
-            message = result.get("choices", [{}])[0].get("message", {})
-            
-            # DeepSeek-R1 may return reasoning in 'reasoning_content' and final answer in 'content'
-            raw_content = message.get("content") or message.get("reasoning_content") or ""
-            
-            # If still empty, try to get any text from the response
-            if not raw_content and result.get("choices"):
-                # Try alternative response structures
-                raw_content = str(result.get("choices", [{}])[0])
-            
-            # Check if we got valid content
-            if not raw_content:
-                return {p: f"The AI was speechless... (debug: {str(result)[:100]})" for p in st.session_state.players}
-            
-            # Parse individual roasts from response
-            roasts = {}
-            for player in st.session_state.players:
-                # Look for "PLAYER_NAME:" pattern
-                import re
-                pattern = rf"{re.escape(player)}[:\s]+(.+?)(?=\n[A-Z]|$)"
-                match = re.search(pattern, raw_content, re.IGNORECASE | re.DOTALL)
-                if match:
-                    roast_text = match.group(1).strip()
-                    # Clean up the roast text
-                    roast_text = roast_text.strip('"').strip()
-                    roasts[player] = roast_text
-                else:
-                    roasts[player] = "Even the AI couldn't find words for this performance..."
-            
-            return roasts
+    raw_content, error = generate_ai_content(prompt, max_tokens=500, temperature=0.9, timeout=60)
+    
+    if error or not raw_content:
+        return {p: f"[Error]: {error or 'Empty response'}" for p in st.session_state.players}
+    
+    # Parse individual roasts from response
+    roasts = {}
+    for player in st.session_state.players:
+        # Look for "PLAYER_NAME:" pattern
+        pattern = rf"{re.escape(player)}[:\s]+(.+?)(?=\n[A-Z]|$)"
+        match = re.search(pattern, raw_content, re.IGNORECASE | re.DOTALL)
+        if match:
+            roast_text = match.group(1).strip()
+            # Clean up the roast text
+            roast_text = roast_text.strip('"').strip()
+            roasts[player] = roast_text
         else:
-            # Return error for all players with more detail
-            try:
-                error_detail = response.json().get("error", {}).get("message", response.text[:100])
-            except:
-                error_detail = response.text[:100]
-            return {p: f"[API Error {response.status_code}]: {error_detail}" for p in st.session_state.players}
-    except requests.exceptions.Timeout:
-        return {p: "[Timeout]: API took too long to respond" for p in st.session_state.players}
-    except Exception as e:
-        return {p: f"[Error]: {str(e)[:80]}" for p in st.session_state.players}
+            roasts[player] = "Even the AI couldn't find words for this performance..."
+    
+    return roasts
 
 def save_game(title=None, filename=None):
     """Save the current game state to a text file."""
@@ -885,7 +948,7 @@ st.markdown("---")
 # Sidebar for game setup
 with st.sidebar:
     st.header("⚙️ Game Setup")
-    st.caption("Version 0.2")
+    st.caption("Version 0.3")
     
     if not st.session_state.game_started:
         st.subheader("Add Players")
@@ -1019,55 +1082,122 @@ with st.sidebar:
         st.subheader("🔥 AI Roasts")
         st.session_state.enable_roasts = st.toggle("Enable roasts", value=st.session_state.enable_roasts)
         if st.session_state.enable_roasts:
-            api_key = st.text_input(
-                "NVIDIA API Key", 
-                value=st.session_state.nvidia_api_key, 
-                type="password",
-                help="Get your API key from build.nvidia.com"
+            # Provider selection
+            provider_index = API_PROVIDERS.index(st.session_state.api_provider) if st.session_state.api_provider in API_PROVIDERS else 0
+            selected_provider = st.selectbox(
+                "AI Provider",
+                API_PROVIDERS,
+                index=provider_index,
+                help="Google Gemini is free! NVIDIA requires a paid API key."
             )
-            
-            # Only update and reset verification if key changed
-            if api_key != st.session_state.nvidia_api_key:
-                st.session_state.nvidia_api_key = api_key
+            if selected_provider != st.session_state.api_provider:
+                st.session_state.api_provider = selected_provider
                 st.session_state.api_verified = False
-                save_api_key(api_key)  # Persist API key
+                st.rerun()
             
-            if api_key:
-                col1, col2 = st.columns([2, 1])
-                with col1:
-                    if st.button("🔌 Verify API Key"):
-                        with st.spinner("Verifying..."):
-                            success, message = verify_nvidia_api(api_key)
-                            if success:
-                                st.session_state.api_verified = True
-                                st.success(message)
+            if st.session_state.api_provider == "Google Gemini (Free)":
+                # Gemini settings
+                if not GEMINI_AVAILABLE:
+                    st.error("⚠️ Google Gemini library not installed. Run: pip install google-genai")
+                else:
+                    api_key = st.text_input(
+                        "Gemini API Key", 
+                        value=st.session_state.gemini_api_key, 
+                        type="password",
+                        help="Get your free API key from aistudio.google.com"
+                    )
+                    
+                    if api_key != st.session_state.gemini_api_key:
+                        st.session_state.gemini_api_key = api_key
+                        st.session_state.api_verified = False
+                        save_api_key(api_key, "gemini")
+                    
+                    if api_key:
+                        col1, col2 = st.columns([2, 1])
+                        with col1:
+                            if st.button("🔌 Verify API Key"):
+                                with st.spinner("Verifying..."):
+                                    success, message = verify_gemini_api(api_key)
+                                    if success:
+                                        st.session_state.api_verified = True
+                                        st.success(message)
+                                    else:
+                                        st.session_state.api_verified = False
+                                        st.error(message)
+                        with col2:
+                            if st.session_state.api_verified:
+                                st.markdown("✅ Verified")
                             else:
-                                st.session_state.api_verified = False
-                                st.error(message)
-                with col2:
-                    if st.session_state.api_verified:
-                        st.markdown("✅ Verified")
+                                st.markdown("❌ Not verified")
+                        
+                        # Gemini model selector
+                        model_names = list(GEMINI_MODELS.keys())
+                        current_model_name = [k for k, v in GEMINI_MODELS.items() if v == st.session_state.selected_gemini_model]
+                        current_index = model_names.index(current_model_name[0]) if current_model_name else 0
+                        
+                        selected_name = st.selectbox(
+                            "AI Model",
+                            model_names,
+                            index=current_index,
+                            help="Gemini 2.5 Flash is fast and free"
+                        )
+                        if GEMINI_MODELS[selected_name] != st.session_state.selected_gemini_model:
+                            st.session_state.selected_gemini_model = GEMINI_MODELS[selected_name]
+                            st.session_state.api_verified = False
+                            st.rerun()
                     else:
-                        st.markdown("❌ Not verified")
-                
-                # Model selector
-                model_names = list(NVIDIA_MODELS.keys())
-                current_model_name = [k for k, v in NVIDIA_MODELS.items() if v == st.session_state.selected_model]
-                current_index = model_names.index(current_model_name[0]) if current_model_name else 1
-                
-                selected_name = st.selectbox(
-                    "AI Model",
-                    model_names,
-                    index=current_index,
-                    help="Llama models are faster, DeepSeek-R1 is more creative but slower"
+                        st.caption("⚠️ Enter your Gemini API key")
+                        st.caption("Get one free at: aistudio.google.com")
+            
+            else:  # NVIDIA
+                api_key = st.text_input(
+                    "NVIDIA API Key", 
+                    value=st.session_state.nvidia_api_key, 
+                    type="password",
+                    help="Get your API key from build.nvidia.com"
                 )
-                if NVIDIA_MODELS[selected_name] != st.session_state.selected_model:
-                    st.session_state.selected_model = NVIDIA_MODELS[selected_name]
-                    st.session_state.api_verified = False  # Re-verify with new model
-                    st.rerun()
-            else:
-                st.caption("⚠️ Enter your NVIDIA API key")
-                st.caption("Get one at: build.nvidia.com")
+                
+                if api_key != st.session_state.nvidia_api_key:
+                    st.session_state.nvidia_api_key = api_key
+                    st.session_state.api_verified = False
+                    save_api_key(api_key, "nvidia")
+                
+                if api_key:
+                    col1, col2 = st.columns([2, 1])
+                    with col1:
+                        if st.button("🔌 Verify API Key"):
+                            with st.spinner("Verifying..."):
+                                success, message = verify_nvidia_api(api_key)
+                                if success:
+                                    st.session_state.api_verified = True
+                                    st.success(message)
+                                else:
+                                    st.session_state.api_verified = False
+                                    st.error(message)
+                    with col2:
+                        if st.session_state.api_verified:
+                            st.markdown("✅ Verified")
+                        else:
+                            st.markdown("❌ Not verified")
+                    
+                    # NVIDIA model selector
+                    model_names = list(NVIDIA_MODELS.keys())
+                    current_model_name = [k for k, v in NVIDIA_MODELS.items() if v == st.session_state.selected_nvidia_model]
+                    current_index = model_names.index(current_model_name[0]) if current_model_name else 1
+                    
+                    selected_name = st.selectbox(
+                        "AI Model",
+                        model_names,
+                        index=current_index,
+                        help="Llama models are faster, DeepSeek-R1 is more creative but slower"
+                    )
+                    if NVIDIA_MODELS[selected_name] != st.session_state.selected_nvidia_model:
+                        st.session_state.selected_nvidia_model = NVIDIA_MODELS[selected_name]
+                        st.session_state.api_verified = False
+                        st.rerun()
+                else:
+                    st.caption("⚠️ Enter your NVIDIA API key")
+                    st.caption("Get one at: build.nvidia.com")
     
     # Load game section (always visible in sidebar)
     st.markdown("---")

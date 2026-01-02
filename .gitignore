@@ -1,5 +1,8 @@
-# API key (sensitive)
+# API keys (sensitive - NEVER commit these!)
 .api_key
+.nvidia_api_key
+.gemini_api_key
+*.api_key
 
 # Python
 __pycache__/
