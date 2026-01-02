@@ -278,10 +278,10 @@ DEFAULT_NVIDIA_MODEL = "meta/llama-3.1-70b-instruct"
 
 # Google Gemini API Configuration
 GEMINI_MODELS = {
-    "Gemini 3.0 Flash (Newest, Best)": "gemini-3.0-flash",
-    "Gemini 2.5 Flash (Fast & Smart)": "gemini-2.5-flash",
-    "Gemini 2.5 Flash Lite (Faster, Less Smart)": "gemini-2.5-flash-lite",
-    "Gemma 3 27B (Unlimited, Lower Quality)": "gemma-3-27b-it",
+    "Gemini 3.0 Flash - Best (20/day)": "gemini-3-flash-preview",
+    "Gemini 2.5 Flash - Smart (20/day)": "gemini-2.5-flash",
+    "Gemini 2.5 Flash Lite - Fast (20/day)": "gemini-2.5-flash-lite",
+    "Gemma 3 27B - Unlimited (Lower Quality)": "gemma-3-27b-it",
 }
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 
@@ -1088,7 +1088,7 @@ with st.sidebar:
                 "AI Provider",
                 API_PROVIDERS,
                 index=provider_index,
-                help="Google Gemini is free! NVIDIA requires a paid API key."
+                help="Google Gemini is free! NVIDIA requires a account for free API key."
             )
             if selected_provider != st.session_state.api_provider:
                 st.session_state.api_provider = selected_provider
