@@ -117,7 +117,19 @@ st.markdown("""
     .stTextInput > div > div > input {
         min-height: 52px !important;
         font-size: 1.1rem !important;
-        padding: 12px !important;
+        padding: 0 12px !important;
+        line-height: 52px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    /* Sidebar text input vertical centering */
+    [data-testid="stSidebar"] .stTextInput > div > div > input {
+        min-height: 44px !important;
+        height: 44px !important;
+        padding: 0 12px !important;
+        padding-bottom: 4px !important;
+        line-height: 40px !important;
     }
     
     /* ===== CHECKBOXES - Larger tap targets ===== */
@@ -218,6 +230,121 @@ st.markdown("""
     .stDownloadButton > button {
         min-height: 54px !important;
         font-size: 1.1rem !important;
+    }
+    
+    /* ===== SIDEBAR PLAYER ROW - Vertical centering ===== */
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
+        align-items: center !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="column"] {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    
+    /* Player name text centering */
+    .player-name-cell {
+        display: flex !important;
+        align-items: center !important;
+        height: 36px !important;
+        font-weight: 500 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Sidebar color picker adjustments */
+    [data-testid="stSidebar"] .stColorPicker {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    [data-testid="stSidebar"] .stColorPicker > div {
+        min-height: 36px !important;
+        height: 36px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    [data-testid="stSidebar"] .stColorPicker label {
+        display: none !important;
+    }
+    
+    /* Sidebar button adjustments for player row */
+    [data-testid="stSidebar"] [data-testid="column"] .stButton {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="column"] .stButton > button {
+        min-height: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        width: auto !important;
+        max-width: none !important;
+        padding: 0 8px !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* Override max-width on ALL button inner elements */
+    [data-testid="stSidebar"] [data-testid="column"] .stButton > button > div {
+        max-width: none !important;
+        width: auto !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: none !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="column"] .stButton > button > div > p {
+        max-width: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        text-align: center !important;
+        flex: none !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="column"] .stButton > button p {
+        max-width: unset !important;
+    }
+    
+    /* Fix for stMarkdownContainer inside buttons - the element causing width: 100% issue */
+    [data-testid="stSidebar"] [data-testid="column"] .stButton [data-testid="stMarkdownContainer"],
+    [data-testid="stSidebar"] [data-testid="column"] .stButton button div[data-testid="stMarkdownContainer"],
+    [data-testid="stSidebar"] .stButton [data-testid="stMarkdownContainer"],
+    .stButton [data-testid="stMarkdownContainer"] {
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="column"] .stButton [data-testid="stMarkdownContainer"] p,
+    [data-testid="stSidebar"] .stButton [data-testid="stMarkdownContainer"] p,
+    .stButton [data-testid="stMarkdownContainer"] p {
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        text-align: center !important;
+    }
+    
+    /* Direct class targeting for emotion-cache containers in buttons */
+    [data-testid="stSidebar"] [data-testid="column"] .stButton button div[class*="emotion-cache"] {
+        width: auto !important;
+        max-width: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -971,30 +1098,41 @@ with st.sidebar:
                 if player not in st.session_state.player_colors:
                     st.session_state.player_colors[player] = DEFAULT_COLORS[i % len(DEFAULT_COLORS)]
                 
-                col1, col2, col3, col4, col5 = st.columns([2, 1, 1, 1, 1])
-                col1.write(f"{i+1}. {player}")
+                col1, col2, col3, col4, col5 = st.columns([2.5, 0.8, 0.8, 0.8, 0.8])
+                
+                # Player name with vertical centering using markdown
+                with col1:
+                    st.markdown(f"<div class='player-name-cell'>{i+1}. {player}</div>", unsafe_allow_html=True)
+                
                 # Color picker
-                new_color = col2.color_picker("", st.session_state.player_colors[player], key=f"color_{player}")
-                if new_color != st.session_state.player_colors[player]:
-                    st.session_state.player_colors[player] = new_color
+                with col2:
+                    new_color = st.color_picker("", st.session_state.player_colors[player], key=f"color_{player}", label_visibility="collapsed")
+                    if new_color != st.session_state.player_colors[player]:
+                        st.session_state.player_colors[player] = new_color
+                
                 # Move up button
-                if i > 0:
-                    if col3.button("⬆️", key=f"up_{player}"):
-                        st.session_state.players[i], st.session_state.players[i-1] = \
-                            st.session_state.players[i-1], st.session_state.players[i]
-                        st.rerun()
+                with col3:
+                    if i > 0:
+                        if st.button("▲", key=f"up_{player}"):
+                            st.session_state.players[i], st.session_state.players[i-1] = \
+                                st.session_state.players[i-1], st.session_state.players[i]
+                            st.rerun()
+                
                 # Move down button
-                if i < len(st.session_state.players) - 1:
-                    if col4.button("⬇️", key=f"down_{player}"):
-                        st.session_state.players[i], st.session_state.players[i+1] = \
-                            st.session_state.players[i+1], st.session_state.players[i]
-                        st.rerun()
+                with col4:
+                    if i < len(st.session_state.players) - 1:
+                        if st.button("▼", key=f"down_{player}"):
+                            st.session_state.players[i], st.session_state.players[i+1] = \
+                                st.session_state.players[i+1], st.session_state.players[i]
+                            st.rerun()
+                
                 # Remove button
-                if col5.button("❌", key=f"remove_{player}"):
-                    st.session_state.players.remove(player)
-                    if player in st.session_state.player_colors:
-                        del st.session_state.player_colors[player]
-                    st.rerun()
+                with col5:
+                    if st.button("✕", key=f"remove_{player}"):
+                        st.session_state.players.remove(player)
+                        if player in st.session_state.player_colors:
+                            del st.session_state.player_colors[player]
+                        st.rerun()
         
         st.markdown("---")
         
