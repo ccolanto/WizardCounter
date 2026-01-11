@@ -391,6 +391,9 @@ DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 # Default colors for new players
 DEFAULT_COLORS = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F"]
 
+# Default player round data structure
+EMPTY_ROUND_DATA = {'bid': None, 'tricks': None}
+
 # Initialize session state with defaults (dark_mode initialized earlier before CSS)
 SESSION_DEFAULTS = {
     'players': [], 'current_round': 1, 'game_data': {}, 'game_started': False,
@@ -457,7 +460,7 @@ def get_shot_players(round_num):
     """Return list of players who need to take a shot (off by 2+ tricks)."""
     shot_players = []
     for player in st.session_state.players:
-        data = st.session_state.game_data.get(round_num, {}).get(player, {'bid': None, 'tricks': None})
+        data = st.session_state.game_data.get(round_num, {}).get(player, EMPTY_ROUND_DATA)
         bid, tricks = data.get('bid', 0) or 0, data.get('tricks', 0) or 0
         if abs(bid - tricks) >= 2:
             shot_players.append(player)
@@ -467,8 +470,16 @@ def init_round_data(round_num):
     """Initialize game data for a round if it doesn't exist."""
     if round_num not in st.session_state.game_data:
         st.session_state.game_data[round_num] = {
-            player: {'bid': None, 'tricks': None} for player in st.session_state.players
+            player: EMPTY_ROUND_DATA.copy() for player in st.session_state.players
         }
+
+def generate_round_roast(round_num):
+    """Generate roast for a completed round and store it."""
+    if st.session_state.enable_roasts and st.session_state.api_verified:
+        roast = generate_roasts(round_num)
+        st.session_state.round_roasts[round_num] = roast if roast else "[No roast generated - API may have failed]"
+    elif st.session_state.enable_roasts:
+        st.session_state.round_roasts[round_num] = "[API not verified - please verify your API key]"
 
 def analyze_game_stats():
     """Analyze the full game and return comprehensive statistics."""
@@ -484,7 +495,7 @@ def analyze_game_stats():
         if r in st.session_state.game_data:
             round_standing = {}
             for p in players:
-                data = st.session_state.game_data[r].get(p, {'bid': None, 'tricks': None})
+                data = st.session_state.game_data[r].get(p, EMPTY_ROUND_DATA)
                 bid = data['bid']
                 tricks = data['tricks']
                 if bid is not None and tricks is not None:
@@ -824,7 +835,7 @@ def generate_roasts(round_num):
         
         for r in range(1, round_num + 1):
             if r in st.session_state.game_data and player in st.session_state.game_data[r]:
-                data = st.session_state.game_data[r].get(player, {'bid': None, 'tricks': None})
+                data = st.session_state.game_data[r].get(player, EMPTY_ROUND_DATA)
                 bid = data['bid']
                 tricks = data['tricks']
                 if bid is not None and tricks is not None:
@@ -854,7 +865,7 @@ def generate_roasts(round_num):
     # Current round performance
     current_performances = []
     for player in st.session_state.players:
-        data = st.session_state.game_data[round_num].get(player, {'bid': None, 'tricks': None})
+        data = st.session_state.game_data[round_num].get(player, EMPTY_ROUND_DATA)
         bid = data['bid'] or 0
         tricks = data['tricks'] or 0
         diff = tricks - bid
@@ -1072,23 +1083,6 @@ def replay_game_with_same_players():
     st.session_state.game_started = True
     st.session_state.max_rounds = 60 // len(players)
     init_round_data(1)
-    st.session_state.shot_players = []
-    st.session_state.round_roasts = {}
-    st.session_state.manual_roast = {}
-    st.session_state.game_summary = None
-    st.session_state.game_stats = None
-    st.session_state.active_tab = 0
-    
-    # Restore players
-    st.session_state.players = players
-    st.session_state.player_colors = colors
-    st.session_state.starting_dealer_index = starting_dealer
-    
-    # Initialize game data for round 1
-    st.session_state.game_data[1] = {
-        player: {'bid': None, 'tricks': None} 
-        for player in st.session_state.players
-    }
 
 def rename_player(old_name, new_name):
     """Rename a player and update all references."""
@@ -1216,7 +1210,7 @@ with st.sidebar:
                 st.session_state.active_tab = 0  # Start on Bids tab
                 # Initialize game data for round 1
                 st.session_state.game_data[1] = {
-                    player: {'bid': None, 'tricks': None} 
+                    player: EMPTY_ROUND_DATA.copy() 
                     for player in st.session_state.players
                 }
                 st.rerun()
@@ -1621,7 +1615,7 @@ else:
         # Ensure current round exists in game data
         if current_round not in st.session_state.game_data:
             st.session_state.game_data[current_round] = {
-                player: {'bid': None, 'tricks': None} 
+                player: EMPTY_ROUND_DATA.copy() 
                 for player in st.session_state.players
             }
         
@@ -1760,12 +1754,9 @@ else:
                         st.session_state.shot_players = get_shot_players(current_round_num)
                         
                         # Generate roast for this round before moving on
-                        if st.session_state.enable_roasts and st.session_state.api_verified:
+                        if st.session_state.enable_roasts:
                             with st.spinner("🔥 Generating roasts... (this may take up to 90 seconds)"):
-                                roast = generate_roasts(current_round_num)
-                                st.session_state.round_roasts[current_round_num] = roast if roast else "[No roast generated - API may have failed]"
-                        elif st.session_state.enable_roasts and not st.session_state.api_verified:
-                            st.session_state.round_roasts[current_round_num] = "[API not verified - please verify your API key]"
+                                generate_round_roast(current_round_num)
                         
                         st.session_state.current_round += 1
                         st.session_state.pending_tab = 0
@@ -1794,12 +1785,9 @@ else:
                         st.session_state.shot_players = get_shot_players(current_round)
                         
                         # Generate roast for final round
-                        if st.session_state.enable_roasts and st.session_state.api_verified:
+                        if st.session_state.enable_roasts:
                             with st.spinner("🔥 Generating final roasts... (this may take up to 90 seconds)"):
-                                roast = generate_roasts(current_round)
-                                st.session_state.round_roasts[current_round] = roast if roast else "[No roast generated - API may have failed]"
-                        elif st.session_state.enable_roasts and not st.session_state.api_verified:
-                            st.session_state.round_roasts[current_round] = "[API not verified - please verify your API key]"
+                                generate_round_roast(current_round)
                         
                         st.session_state.game_finished = True
                         st.session_state.show_celebration = True
@@ -1882,7 +1870,7 @@ else:
             if round_num in st.session_state.game_data:
                 row = {'Round': round_num}
                 for player in st.session_state.players:
-                    data = st.session_state.game_data[round_num].get(player, {'bid': None, 'tricks': None})
+                    data = st.session_state.game_data[round_num].get(player, EMPTY_ROUND_DATA)
                     bid = data['bid']
                     tricks = data['tricks']
                     
@@ -1933,7 +1921,7 @@ else:
                 
                 chart_data["Round"].append(round_num)
                 for player in st.session_state.players:
-                    data = st.session_state.game_data[round_num].get(player, {'bid': None, 'tricks': None})
+                    data = st.session_state.game_data[round_num].get(player, EMPTY_ROUND_DATA)
                     bid = data['bid']
                     tricks = data['tricks']
                     if bid is not None and tricks is not None:
