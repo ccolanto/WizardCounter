@@ -17,7 +17,163 @@ except ImportError:
 
 st.set_page_config(page_title="The Grand Fardini", page_icon="🧙", layout="wide")
 
-# Touchscreen-optimized CSS
+# Initialize dark_mode early (before CSS that uses it)
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
+
+# Generate theme-specific CSS based on toggle state
+if st.session_state.dark_mode:
+    # Dark mode colors
+    theme_css = """
+    <style>
+        /* ===== FORCED DARK MODE ===== */
+        :root {
+            --text-primary: #fafafa !important;
+            --text-secondary: #ccc !important;
+            --bg-primary: #0e1117 !important;
+            --bg-secondary: #262730 !important;
+            --bg-hover: #3d3d4d !important;
+            --border-color: #444 !important;
+        }
+        
+        /* Force dark backgrounds */
+        .stApp, [data-testid="stAppViewContainer"], .main, [data-testid="stHeader"] {
+            background-color: #0e1117 !important;
+        }
+        
+        [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
+            background-color: #262730 !important;
+        }
+        
+        /* Force light text everywhere */
+        body, .stApp, p, span, label, h1, h2, h3, h4, h5, h6, 
+        .stMarkdown, .stText, div, li, td, th,
+        [data-testid="stSidebar"] * {
+            color: #fafafa !important;
+        }
+        
+        /* Input fields */
+        input, textarea, select, .stTextInput input, .stNumberInput input, 
+        .stSelectbox select, [data-baseweb="input"] input {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+            border-color: #444 !important;
+        }
+        
+        /* Buttons - secondary */
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+            border-color: #444 !important;
+        }
+        
+        /* Radio buttons / tabs */
+        .stRadio > div > label {
+            background: #262730 !important;
+            color: #fafafa !important;
+        }
+        
+        .stRadio > div > label:hover {
+            background: #3d3d4d !important;
+        }
+        
+        /* Expanders */
+        .streamlit-expanderHeader {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+        }
+        
+        .streamlit-expanderContent {
+            background-color: #1a1a2e !important;
+        }
+        
+        /* Data frames */
+        .stDataFrame, .stDataFrame td, .stDataFrame th {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+        }
+        
+        /* Alerts - keep their colors but adjust */
+        .stAlert {
+            border-color: #444 !important;
+        }
+    </style>
+    """
+else:
+    # Light mode colors
+    theme_css = """
+    <style>
+        /* ===== FORCED LIGHT MODE ===== */
+        :root {
+            --text-primary: #262730 !important;
+            --text-secondary: #555 !important;
+            --bg-primary: #ffffff !important;
+            --bg-secondary: #f0f2f6 !important;
+            --bg-hover: #e0e2e6 !important;
+            --border-color: #ddd !important;
+        }
+        
+        /* Force light backgrounds */
+        .stApp, [data-testid="stAppViewContainer"], .main, [data-testid="stHeader"] {
+            background-color: #ffffff !important;
+        }
+        
+        [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
+            background-color: #f0f2f6 !important;
+        }
+        
+        /* Force dark text everywhere */
+        body, .stApp, p, span, label, h1, h2, h3, h4, h5, h6, 
+        .stMarkdown, .stText, div, li, td, th,
+        [data-testid="stSidebar"] * {
+            color: #262730 !important;
+        }
+        
+        /* Input fields */
+        input, textarea, select, .stTextInput input, .stNumberInput input, 
+        .stSelectbox select, [data-baseweb="input"] input {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+            border-color: #ddd !important;
+        }
+        
+        /* Buttons - secondary */
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
+            background-color: #f0f2f6 !important;
+            color: #262730 !important;
+            border-color: #ddd !important;
+        }
+        
+        /* Radio buttons / tabs */
+        .stRadio > div > label {
+            background: #f0f2f6 !important;
+            color: #262730 !important;
+        }
+        
+        .stRadio > div > label:hover {
+            background: #e0e2e6 !important;
+        }
+        
+        /* Expanders */
+        .streamlit-expanderHeader {
+            background-color: #f0f2f6 !important;
+            color: #262730 !important;
+        }
+        
+        .streamlit-expanderContent {
+            background-color: #ffffff !important;
+        }
+        
+        /* Data frames */
+        .stDataFrame, .stDataFrame td, .stDataFrame th {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+        }
+    </style>
+    """
+
+st.markdown(theme_css, unsafe_allow_html=True)
+
 st.markdown("""
 <style>
     /* ===== BUTTONS - Larger touch targets ===== */
@@ -85,14 +241,15 @@ st.markdown("""
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        background: #f0f2f6 !important;
+        background: var(--bg-secondary, #f0f2f6) !important;
         border: 2px solid transparent !important;
         transition: all 0.15s ease !important;
         font-weight: 500 !important;
+        color: var(--text-primary, inherit) !important;
     }
     
     .stRadio > div > label:hover {
-        background: #e0e2e6 !important;
+        background: var(--bg-hover, #e0e2e6) !important;
         transform: scale(1.02) !important;
     }
     
@@ -130,6 +287,18 @@ st.markdown("""
         padding: 0 12px !important;
         padding-bottom: 4px !important;
         line-height: 40px !important;
+    }
+    
+    /* ===== API KEY SAVE BUTTON - Touch optimized ===== */
+    [data-testid="stSidebar"] button[kind="secondary"]:has(p:contains("💾")),
+    [data-testid="stSidebar"] .stButton > button {
+        min-height: 44px !important;
+        min-width: 44px !important;
+        font-size: 1.3rem !important;
+        padding: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     /* ===== CHECKBOXES - Larger tap targets ===== */
@@ -346,6 +515,76 @@ st.markdown("""
         width: auto !important;
         max-width: none !important;
     }
+    
+    /* ===== THEME-AWARE TEXT & CONTRAST ===== */
+    /* Ensure text is readable on both light and dark backgrounds */
+    .stMarkdown, .stText, p, span, label {
+        color: var(--text-primary, inherit) !important;
+    }
+    
+    /* Button text should always have good contrast */
+    .stButton > button {
+        color: var(--text-primary, inherit) !important;
+    }
+    
+    /* Primary buttons always white text on red */
+    .stButton > button[kind="primary"],
+    .stButton > button[data-testid="baseButton-primary"] {
+        color: white !important;
+    }
+    
+    /* Secondary buttons theme-aware */
+    .stButton > button[kind="secondary"],
+    .stButton > button[data-testid="baseButton-secondary"] {
+        color: var(--text-primary, inherit) !important;
+        background: var(--bg-secondary, #f0f2f6) !important;
+        border: 1px solid var(--border-color, #ddd) !important;
+    }
+    
+    .stButton > button[kind="secondary"]:hover,
+    .stButton > button[data-testid="baseButton-secondary"]:hover {
+        background: var(--bg-hover, #e0e2e6) !important;
+    }
+    
+    /* Number input text visibility */
+    .stNumberInput > div > div > input {
+        color: var(--text-primary, inherit) !important;
+    }
+    
+    /* Text input visibility */
+    .stTextInput > div > div > input {
+        color: var(--text-primary, inherit) !important;
+    }
+    
+    /* Select box text visibility */
+    .stSelectbox > div > div {
+        color: var(--text-primary, inherit) !important;
+    }
+    
+    /* Labels and headers */
+    .stNumberInput label, .stTextInput label, .stSelectbox label {
+        color: var(--text-primary, inherit) !important;
+    }
+    
+    /* Alerts maintain their own colors but ensure text is visible */
+    .stAlert p, .stInfo p, .stWarning p, .stSuccess p, .stError p {
+        color: inherit !important;
+    }
+    
+    /* Expander header text */
+    .streamlit-expanderHeader {
+        color: var(--text-primary, inherit) !important;
+    }
+    
+    /* Sidebar text */
+    [data-testid="stSidebar"] * {
+        color: var(--text-primary, inherit);
+    }
+    
+    /* Caption text slightly muted */
+    .stCaption, [data-testid="stCaption"] {
+        color: var(--text-secondary, #555) !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -462,6 +701,7 @@ if 'game_summary' not in st.session_state:
     st.session_state.game_summary = None  # LLM-generated end-game summary
 if 'game_stats' not in st.session_state:
     st.session_state.game_stats = None  # Analyzed game statistics
+# dark_mode is initialized early (before CSS)
 
 def calculate_score(bid, tricks):
     """Calculate score for a round based on bid and tricks won."""
@@ -1123,7 +1363,18 @@ def rename_player(old_name, new_name):
 # Sidebar for game setup
 with st.sidebar:
     st.title("🎩 The Grand Fardini")
-    st.caption("Version 0.4")
+    
+    # Theme toggle and version in same row
+    theme_col, version_col = st.columns([1, 1])
+    with theme_col:
+        dark_mode = st.toggle("🌙", value=st.session_state.dark_mode, help="Dark Mode")
+        if dark_mode != st.session_state.dark_mode:
+            st.session_state.dark_mode = dark_mode
+            st.rerun()
+    with version_col:
+        st.caption("v0.4")
+    
+    st.markdown("---")
     
     if not st.session_state.game_started:
         st.subheader("Add Players")
@@ -1309,17 +1560,28 @@ with st.sidebar:
                 if not GEMINI_AVAILABLE:
                     st.error("⚠️ Google Gemini library not installed. Run: pip install google-genai")
                 else:
-                    api_key = st.text_input(
-                        "Gemini API Key", 
-                        value=st.session_state.gemini_api_key, 
-                        type="password",
-                        help="Get your free API key from aistudio.google.com"
-                    )
+                    # API key input with touchscreen-friendly save button
+                    key_col, btn_col = st.columns([4, 1])
+                    with key_col:
+                        api_key = st.text_input(
+                            "Gemini API Key", 
+                            value=st.session_state.gemini_api_key, 
+                            type="password",
+                            help="Get your free API key from aistudio.google.com",
+                            key="gemini_key_input"
+                        )
+                    with btn_col:
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)  # Spacer to align with input
+                        save_clicked = st.button("💾", key="save_gemini_key", help="Save API Key", use_container_width=True)
                     
-                    if api_key != st.session_state.gemini_api_key:
-                        st.session_state.gemini_api_key = api_key
-                        st.session_state.api_verified = False
-                        save_api_key(api_key, "gemini")
+                    # Save on button click or when key changes
+                    if save_clicked or api_key != st.session_state.gemini_api_key:
+                        if api_key != st.session_state.gemini_api_key:
+                            st.session_state.gemini_api_key = api_key
+                            st.session_state.api_verified = False
+                            save_api_key(api_key, "gemini")
+                            if save_clicked:
+                                st.toast("API key saved!")
                     
                     if api_key:
                         col1, col2 = st.columns([2, 1])
@@ -1359,17 +1621,28 @@ with st.sidebar:
                         st.caption("Get one free at: aistudio.google.com")
             
             else:  # NVIDIA
-                api_key = st.text_input(
-                    "NVIDIA API Key", 
-                    value=st.session_state.nvidia_api_key, 
-                    type="password",
-                    help="Get your API key from build.nvidia.com"
-                )
+                # API key input with touchscreen-friendly save button
+                key_col, btn_col = st.columns([4, 1])
+                with key_col:
+                    api_key = st.text_input(
+                        "NVIDIA API Key", 
+                        value=st.session_state.nvidia_api_key, 
+                        type="password",
+                        help="Get your API key from build.nvidia.com",
+                        key="nvidia_key_input"
+                    )
+                with btn_col:
+                    st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)  # Spacer to align with input
+                    save_clicked = st.button("💾", key="save_nvidia_key", help="Save API Key", use_container_width=True)
                 
-                if api_key != st.session_state.nvidia_api_key:
-                    st.session_state.nvidia_api_key = api_key
-                    st.session_state.api_verified = False
-                    save_api_key(api_key, "nvidia")
+                # Save on button click or when key changes
+                if save_clicked or api_key != st.session_state.nvidia_api_key:
+                    if api_key != st.session_state.nvidia_api_key:
+                        st.session_state.nvidia_api_key = api_key
+                        st.session_state.api_verified = False
+                        save_api_key(api_key, "nvidia")
+                        if save_clicked:
+                            st.toast("API key saved!")
                 
                 if api_key:
                     col1, col2 = st.columns([2, 1])
