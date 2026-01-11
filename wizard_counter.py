@@ -401,14 +401,14 @@ else:
         /* Sidebar buttons - ensure visible in light mode */
         [data-testid="stSidebar"] .stButton > button {
             background-color: #d8d8d8 !important;
-            color: #1a1a1a !important;
+            color: #000000 !important;
             border: 2px solid #888 !important;
-            font-weight: 500 !important;
+            font-weight: 600 !important;
         }
         
         [data-testid="stSidebar"] .stButton > button:hover {
             background-color: #c0c0c0 !important;
-            color: #1a1a1a !important;
+            color: #000000 !important;
             border-color: #555 !important;
         }
         
@@ -419,22 +419,21 @@ else:
             border: 2px solid #cc0000 !important;
         }
         
-        /* Button text visibility */
-        .stButton > button p,
-        .stButton > button span,
-        .stButton > button div,
+        /* Button text visibility - FORCE black text on all button elements */
+        .stButton > button *,
+        [data-testid="stSidebar"] .stButton > button *,
         [data-testid="stSidebar"] .stButton > button p,
         [data-testid="stSidebar"] .stButton > button span,
-        [data-testid="stSidebar"] .stButton > button div {
-            color: #1a1a1a !important;
+        [data-testid="stSidebar"] .stButton > button div,
+        [data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"],
+        [data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"] p {
+            color: #000000 !important;
         }
         
-        [data-testid="stSidebar"] .stButton > button[kind="primary"] p,
-        [data-testid="stSidebar"] .stButton > button[kind="primary"] span,
-        [data-testid="stSidebar"] .stButton > button[kind="primary"] div,
-        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] p,
-        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] span,
-        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] div {
+        [data-testid="stSidebar"] .stButton > button[kind="primary"] *,
+        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] *,
+        .stButton > button[kind="primary"] *,
+        .stButton > button[data-testid="baseButton-primary"] * {
             color: #ffffff !important;
         }
         
