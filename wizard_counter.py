@@ -352,6 +352,15 @@ else:
             color: #262730 !important;
         }
         
+        /* CRITICAL: Force sidebar button text to be black - placed early for higher specificity cascade */
+        [data-testid="stSidebar"] button,
+        [data-testid="stSidebar"] button *,
+        [data-testid="stSidebar"] .stButton button,
+        [data-testid="stSidebar"] .stButton button * {
+            color: #000000 !important;
+            -webkit-text-fill-color: #000000 !important;
+        }
+        
         /* Input fields */
         input, textarea, select, .stTextInput input, .stNumberInput input, 
         .stSelectbox select, [data-baseweb="input"] input {
