@@ -392,6 +392,30 @@ else:
             border-color: #ddd !important;
         }
         
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]):hover {
+            background-color: #e0e2e6 !important;
+            color: #262730 !important;
+        }
+        
+        /* Sidebar buttons - ensure visible in light mode */
+        [data-testid="stSidebar"] .stButton > button {
+            background-color: #e0e2e6 !important;
+            color: #262730 !important;
+            border-color: #ccc !important;
+        }
+        
+        [data-testid="stSidebar"] .stButton > button:hover {
+            background-color: #d0d2d6 !important;
+            color: #262730 !important;
+        }
+        
+        [data-testid="stSidebar"] .stButton > button[kind="primary"],
+        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] {
+            background-color: #ff4b4b !important;
+            color: #ffffff !important;
+            border-color: #ff4b4b !important;
+        }
+        
         /* Radio buttons / tabs */
         .stRadio > div > label {
             background: #f0f2f6 !important;
