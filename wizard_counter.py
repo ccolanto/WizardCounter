@@ -590,6 +590,24 @@ st.markdown(theme_css, unsafe_allow_html=True)
 
 st.markdown("""
 <style>
+    /* ===== SIDEBAR COLLAPSE BUTTON - Always visible ===== */
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapseButton"],
+    button[kind="header"],
+    [data-testid="baseButton-header"] {
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: flex !important;
+    }
+    
+    /* Make sure the collapse arrow is always visible */
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarNav"] button,
+    section[data-testid="stSidebar"] > div:first-child button {
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
     /* ===== BUTTONS - Larger touch targets ===== */
     .stButton > button {
         min-height: 54px !important;
