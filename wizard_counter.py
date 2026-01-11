@@ -391,54 +391,47 @@ DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 # Default colors for new players
 DEFAULT_COLORS = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F"]
 
-# Initialize session state
-if 'players' not in st.session_state:
-    st.session_state.players = []
-if 'current_round' not in st.session_state:
-    st.session_state.current_round = 1
-if 'game_data' not in st.session_state:
-    st.session_state.game_data = {}  # {round: {player: {'bid': x, 'tricks': y}}}
-if 'game_started' not in st.session_state:
-    st.session_state.game_started = False
-if 'max_rounds' not in st.session_state:
-    st.session_state.max_rounds = 0
-if 'current_save_file' not in st.session_state:
-    st.session_state.current_save_file = None
-if 'player_colors' not in st.session_state:
-    st.session_state.player_colors = {}  # {player_name: hex_color}
-if 'active_tab' not in st.session_state:
-    st.session_state.active_tab = 0  # 0=Bids, 1=Tricks, 2=Scoreboard
-if 'starting_dealer_index' not in st.session_state:
-    st.session_state.starting_dealer_index = 0  # Index of dealer for round 1
-if 'shot_players' not in st.session_state:
-    st.session_state.shot_players = []  # Players who need to take a shot
-if 'round_roasts' not in st.session_state:
-    st.session_state.round_roasts = {}  # {round_num: roast_text}
-if 'api_provider' not in st.session_state:
-    st.session_state.api_provider = DEFAULT_PROVIDER
+# Initialize session state with defaults (dark_mode initialized earlier before CSS)
+SESSION_DEFAULTS = {
+    'players': [], 'current_round': 1, 'game_data': {}, 'game_started': False,
+    'max_rounds': 0, 'current_save_file': None, 'player_colors': {}, 'active_tab': 0,
+    'starting_dealer_index': 0, 'shot_players': [], 'round_roasts': {},
+    'api_provider': DEFAULT_PROVIDER, 'enable_roasts': False, 'api_verified': False,
+    'selected_nvidia_model': DEFAULT_NVIDIA_MODEL, 'selected_gemini_model': DEFAULT_GEMINI_MODEL,
+    'game_finished': False, 'show_celebration': False, 'manual_roast': {},
+    'game_summary': None, 'game_stats': None,
+}
+for key, default in SESSION_DEFAULTS.items():
+    if key not in st.session_state:
+        st.session_state[key] = default
+# Load API keys if not already loaded
 if 'nvidia_api_key' not in st.session_state:
     st.session_state.nvidia_api_key = load_saved_api_key("nvidia")
 if 'gemini_api_key' not in st.session_state:
     st.session_state.gemini_api_key = load_saved_api_key("gemini")
-if 'enable_roasts' not in st.session_state:
-    st.session_state.enable_roasts = False
-if 'api_verified' not in st.session_state:
-    st.session_state.api_verified = False
-if 'selected_nvidia_model' not in st.session_state:
-    st.session_state.selected_nvidia_model = DEFAULT_NVIDIA_MODEL
-if 'selected_gemini_model' not in st.session_state:
-    st.session_state.selected_gemini_model = DEFAULT_GEMINI_MODEL
-if 'game_finished' not in st.session_state:
-    st.session_state.game_finished = False
-if 'show_celebration' not in st.session_state:
-    st.session_state.show_celebration = False
-if 'manual_roast' not in st.session_state:
-    st.session_state.manual_roast = {}  # For on-demand roasts {player: roast}
-if 'game_summary' not in st.session_state:
-    st.session_state.game_summary = None  # LLM-generated end-game summary
-if 'game_stats' not in st.session_state:
-    st.session_state.game_stats = None  # Analyzed game statistics
-# dark_mode is initialized early (before CSS)
+
+def get_theme_colors():
+    """Return theme-aware colors based on current dark_mode setting."""
+    if st.session_state.dark_mode:
+        return {
+            'bg_primary': '#0e1117', 'bg_secondary': '#262730', 'bg_hover': '#3d3d4d',
+            'text_primary': '#fafafa', 'text_secondary': '#ccc', 'border': '#444',
+            'popup_bg': 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+            'card_bg': 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)',
+            'roast_bg': 'linear-gradient(135deg, #2d1b69 0%, #11998e 100%)',
+            'banner_bg': 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+            'chart_grid': '#444', 'stat_text': '#98D8C8',
+        }
+    else:
+        return {
+            'bg_primary': '#ffffff', 'bg_secondary': '#f0f2f6', 'bg_hover': '#e0e2e6',
+            'text_primary': '#262730', 'text_secondary': '#555', 'border': '#ddd',
+            'popup_bg': 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%)',
+            'card_bg': 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)',
+            'roast_bg': 'linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)',
+            'banner_bg': 'linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%)',
+            'chart_grid': '#ddd', 'stat_text': '#495057',
+        }
 
 def calculate_score(bid, tricks):
     """Calculate score for a round based on bid and tricks won."""
@@ -454,12 +447,28 @@ def get_total_scores():
     game_finished = st.session_state.get('game_finished', False)
     
     for round_num, round_data in st.session_state.game_data.items():
-        # Count rounds before the current round, OR all rounds if game is finished
         if round_num < current_round or game_finished:
             for player, data in round_data.items():
                 if data['bid'] is not None and data['tricks'] is not None:
                     totals[player] += calculate_score(data['bid'], data['tricks'])
     return totals
+
+def get_shot_players(round_num):
+    """Return list of players who need to take a shot (off by 2+ tricks)."""
+    shot_players = []
+    for player in st.session_state.players:
+        data = st.session_state.game_data.get(round_num, {}).get(player, {'bid': None, 'tricks': None})
+        bid, tricks = data.get('bid', 0) or 0, data.get('tricks', 0) or 0
+        if abs(bid - tricks) >= 2:
+            shot_players.append(player)
+    return shot_players
+
+def init_round_data(round_num):
+    """Initialize game data for a round if it doesn't exist."""
+    if round_num not in st.session_state.game_data:
+        st.session_state.game_data[round_num] = {
+            player: {'bid': None, 'tricks': None} for player in st.session_state.players
+        }
 
 def analyze_game_stats():
     """Analyze the full game and return comprehensive statistics."""
@@ -1028,15 +1037,10 @@ def delete_save(filename):
     if filepath.exists():
         filepath.unlink()
 
-def reset_game():
-    """Reset the game to initial state."""
-    st.session_state.players = []
-    st.session_state.player_colors = {}
-    st.session_state.starting_dealer_index = 0
+def _clear_game_state():
+    """Clear game-specific state (used by reset and replay)."""
     st.session_state.current_round = 1
     st.session_state.game_data = {}
-    st.session_state.game_started = False
-    st.session_state.max_rounds = 0
     st.session_state.current_save_file = None
     st.session_state.game_finished = False
     st.session_state.shot_players = []
@@ -1044,21 +1048,30 @@ def reset_game():
     st.session_state.manual_roast = {}
     st.session_state.game_summary = None
     st.session_state.game_stats = None
+    st.session_state.active_tab = 0
+
+def reset_game():
+    """Reset the game to initial state."""
+    _clear_game_state()
+    st.session_state.players = []
+    st.session_state.player_colors = {}
+    st.session_state.starting_dealer_index = 0
+    st.session_state.game_started = False
+    st.session_state.max_rounds = 0
 
 def replay_game_with_same_players():
     """Start a new game with the same players."""
-    # Keep players and colors
     players = st.session_state.players.copy()
     colors = st.session_state.player_colors.copy()
     starting_dealer = st.session_state.starting_dealer_index
     
-    # Reset game state but preserve players
-    st.session_state.current_round = 1
-    st.session_state.game_data = {}
+    _clear_game_state()
+    st.session_state.players = players
+    st.session_state.player_colors = colors
+    st.session_state.starting_dealer_index = starting_dealer
     st.session_state.game_started = True
     st.session_state.max_rounds = 60 // len(players)
-    st.session_state.current_save_file = None
-    st.session_state.game_finished = False
+    init_round_data(1)
     st.session_state.shot_players = []
     st.session_state.round_roasts = {}
     st.session_state.manual_roast = {}
@@ -1531,20 +1544,14 @@ else:
             
             # Display individual roasts in columns
             roast_cols = st.columns(len(st.session_state.players))
-            # Theme-aware roast card colors
-            if st.session_state.dark_mode:
-                roast_card_bg = "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)"
-                roast_card_text = "#FFFFFF"
-            else:
-                roast_card_bg = "linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)"
-                roast_card_text = "#262730"
+            theme = get_theme_colors()
             for i, player in enumerate(st.session_state.players):
                 player_color = st.session_state.player_colors.get(player, "#FF6B6B")
                 roast_text = st.session_state.manual_roast.get(player, "No roast available")
                 with roast_cols[i]:
                     st.markdown(
                         f"""
-                        <div style='background: {roast_card_bg}; 
+                        <div style='background: {theme['card_bg']}; 
                                     padding: 15px; border-radius: 15px; 
                                     border: 3px solid {player_color}; 
                                     margin: 5px 0; 
@@ -1553,7 +1560,7 @@ else:
                             <h3 style='color: {player_color}; text-align: center; margin: 0 0 10px 0;'>
                                 🔥 {player} 🔥
                             </h3>
-                            <p style='color: {roast_card_text}; text-align: center; font-size: 1.1em; font-style: italic; 
+                            <p style='color: {theme['text_primary']}; text-align: center; font-size: 1.1em; font-style: italic; 
                                       margin: 0; line-height: 1.4;'>
                                 "{roast_text}"
                             </p>
@@ -1749,19 +1756,11 @@ else:
                 tricks_valid = total_tricks == current_round
                 if tricks_valid:
                     if st.button("Next Round ➡️", type="primary", key="next_round_btn"):
-                        # Check for players who need to take a shot (off by 2+ tricks)
-                        shot_players = []
                         current_round_num = st.session_state.current_round
-                        for player in st.session_state.players:
-                            bid = st.session_state.game_data[current_round_num][player]['bid'] or 0
-                            tricks = st.session_state.game_data[current_round_num][player]['tricks'] or 0
-                            if abs(bid - tricks) >= 2:
-                                shot_players.append(player)
-                        
-                        st.session_state.shot_players = shot_players
+                        st.session_state.shot_players = get_shot_players(current_round_num)
                         
                         # Generate roast for this round before moving on
-                        if st.session_state.enable_roasts and st.session_state.nvidia_api_key and st.session_state.api_verified:
+                        if st.session_state.enable_roasts and st.session_state.api_verified:
                             with st.spinner("🔥 Generating roasts... (this may take up to 90 seconds)"):
                                 roast = generate_roasts(current_round_num)
                                 st.session_state.round_roasts[current_round_num] = roast if roast else "[No roast generated - API may have failed]"
@@ -1769,20 +1768,11 @@ else:
                             st.session_state.round_roasts[current_round_num] = "[API not verified - please verify your API key]"
                         
                         st.session_state.current_round += 1
-                        st.session_state.pending_tab = 0  # Switch to Bids tab on rerun
-                        # Initialize next round if needed
-                        if st.session_state.current_round not in st.session_state.game_data:
-                            st.session_state.game_data[st.session_state.current_round] = {
-                                player: {'bid': None, 'tricks': None} 
-                                for player in st.session_state.players
-                            }
+                        st.session_state.pending_tab = 0
+                        init_round_data(st.session_state.current_round)
                         
                         # Auto-save game after each round
-                        if st.session_state.current_save_file:
-                            save_game(filename=st.session_state.current_save_file)
-                        else:
-                            save_game()
-                        
+                        save_game(filename=st.session_state.current_save_file) if st.session_state.current_save_file else save_game()
                         st.rerun()
                 else:
                     st.button("Next Round ➡️", type="primary", disabled=True, key="next_round_btn_disabled")
@@ -1800,19 +1790,11 @@ else:
                 
                 if all_tricks_entered and all_bids_entered and not st.session_state.get('game_finished', False):
                     if st.button("🏆 Finish Game", type="primary"):
-                        # Check for players who need to take a shot (off by 2+ tricks)
-                        shot_players = []
                         current_round = st.session_state.current_round
-                        for player in st.session_state.players:
-                            bid = st.session_state.game_data[current_round][player]['bid'] or 0
-                            tricks = st.session_state.game_data[current_round][player]['tricks'] or 0
-                            if abs(bid - tricks) >= 2:
-                                shot_players.append(player)
-                        
-                        st.session_state.shot_players = shot_players
+                        st.session_state.shot_players = get_shot_players(current_round)
                         
                         # Generate roast for final round
-                        if st.session_state.enable_roasts and st.session_state.nvidia_api_key and st.session_state.api_verified:
+                        if st.session_state.enable_roasts and st.session_state.api_verified:
                             with st.spinner("🔥 Generating final roasts... (this may take up to 90 seconds)"):
                                 roast = generate_roasts(current_round)
                                 st.session_state.round_roasts[current_round] = roast if roast else "[No roast generated - API may have failed]"
@@ -1820,8 +1802,8 @@ else:
                             st.session_state.round_roasts[current_round] = "[API not verified - please verify your API key]"
                         
                         st.session_state.game_finished = True
-                        st.session_state.show_celebration = True  # Trigger confetti
-                        st.session_state.pending_tab = 2  # Switch to Scoreboard on rerun
+                        st.session_state.show_celebration = True
+                        st.session_state.pending_tab = 2
                         st.rerun()
                 elif st.session_state.get('game_finished', False):
                     st.success("🏆 Game Complete! View results in Scoreboard tab.")
@@ -1830,37 +1812,29 @@ else:
     
     # Show shot popup if there are players who need to take a shot
     if st.session_state.shot_players:
-        # Theme-aware colors for banners
-        if st.session_state.dark_mode:
-            banner_bg = "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
-            roast_bg = "linear-gradient(135deg, #2d1b69 0%, #11998e 100%)"
-            banner_text = "#FFFFFF"
-        else:
-            banner_bg = "linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%)"
-            roast_bg = "linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)"
-            banner_text = "#262730"
+        theme = get_theme_colors()
         
         # Show roast first if available
         prev_round = st.session_state.current_round - 1
         if prev_round in st.session_state.round_roasts:
             roast_text = st.session_state.round_roasts[prev_round]
             st.markdown(
-                f"""<div style='background: {roast_bg}; 
+                f"""<div style='background: {theme['roast_bg']}; 
                              padding: 20px; border-radius: 15px; border: 2px solid #f39c12; 
                              margin: 10px 0; box-shadow: 0 0 15px #f39c12;'>
                     <h3 style='color: #f39c12; text-align: center; margin-bottom: 10px;'>🔥 Round {prev_round} Roast 🔥</h3>
-                    <p style='color: {banner_text}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
+                    <p style='color: {theme['text_primary']}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
                     </div>""",
                 unsafe_allow_html=True
             )
         
-        shot_html = ""
-        for player in st.session_state.shot_players:
-            player_color = st.session_state.player_colors.get(player, "#FF0000")
-            shot_html += f"<h2 style='color:{player_color}; text-align:center;'>🍺 {player.upper()} NEEDS TO TAKE A SHOT! 🍺</h2>"
+        shot_html = "".join(
+            f"<h2 style='color:{st.session_state.player_colors.get(p, '#FF0000')}; text-align:center;'>🍺 {p.upper()} NEEDS TO TAKE A SHOT! 🍺</h2>"
+            for p in st.session_state.shot_players
+        )
         
         st.markdown(
-            f"""<div style='background: {banner_bg}; 
+            f"""<div style='background: {theme['banner_bg']}; 
                          padding: 30px; border-radius: 15px; border: 3px solid #e94560; 
                          margin: 20px 0; box-shadow: 0 0 20px #e94560;'>
                 {shot_html}
@@ -1870,8 +1844,6 @@ else:
         
         if st.button("✅ Acknowledged - Shots Taken!", type="primary"):
             st.session_state.shot_players = []
-            # Clear the roast for previous round
-            prev_round = st.session_state.current_round - 1
             if prev_round in st.session_state.round_roasts:
                 del st.session_state.round_roasts[prev_round]
             st.rerun()
@@ -1880,20 +1852,14 @@ else:
     elif not st.session_state.shot_players:
         prev_round = st.session_state.current_round - 1
         if prev_round in st.session_state.round_roasts:
-            # Theme-aware colors
-            if st.session_state.dark_mode:
-                roast_bg = "linear-gradient(135deg, #2d1b69 0%, #11998e 100%)"
-                roast_text_color = "#FFFFFF"
-            else:
-                roast_bg = "linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)"
-                roast_text_color = "#262730"
+            theme = get_theme_colors()
             roast_text = st.session_state.round_roasts[prev_round]
             st.markdown(
-                f"""<div style='background: {roast_bg}; 
+                f"""<div style='background: {theme['roast_bg']};  
                              padding: 20px; border-radius: 15px; border: 2px solid #f39c12; 
                              margin: 10px 0; box-shadow: 0 0 15px #f39c12;'>
                     <h3 style='color: #f39c12; text-align: center; margin-bottom: 10px;'>🔥 Round {prev_round} Roast 🔥</h3>
-                    <p style='color: {roast_text_color}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
+                    <p style='color: {theme['text_primary']}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
                     </div>""",
                 unsafe_allow_html=True
             )
@@ -1976,38 +1942,21 @@ else:
         
         if len(chart_data["Round"]) > 1:
             chart_df = pd.DataFrame(chart_data)
-            # Melt the dataframe for Altair
             chart_melted = chart_df.melt(id_vars=["Round"], var_name="Player", value_name="Score")
             
-            # Get colors for each player
             color_scale = alt.Scale(
                 domain=st.session_state.players,
                 range=[st.session_state.player_colors.get(p, DEFAULT_COLORS[i % len(DEFAULT_COLORS)]) 
                        for i, p in enumerate(st.session_state.players)]
             )
             
-            # Theme-aware chart colors
-            if st.session_state.dark_mode:
-                chart_bg = "#0e1117"
-                grid_color = "#444"
-                label_color = "#fafafa"
-            else:
-                chart_bg = "#ffffff"
-                grid_color = "#ddd"
-                label_color = "#262730"
-            
-            # Create Altair chart with custom colors and theme
+            theme = get_theme_colors()
             chart = alt.Chart(chart_melted).mark_line(point=True, strokeWidth=3).encode(
-                x=alt.X("Round:Q", title="Round", axis=alt.Axis(tickMinStep=1, labelColor=label_color, titleColor=label_color, gridColor=grid_color)),
-                y=alt.Y("Score:Q", title="Total Score", axis=alt.Axis(labelColor=label_color, titleColor=label_color, gridColor=grid_color)),
-                color=alt.Color("Player:N", scale=color_scale, legend=alt.Legend(title="Players", labelColor=label_color, titleColor=label_color)),
+                x=alt.X("Round:Q", title="Round", axis=alt.Axis(tickMinStep=1, labelColor=theme['text_primary'], titleColor=theme['text_primary'], gridColor=theme['chart_grid'])),
+                y=alt.Y("Score:Q", title="Total Score", axis=alt.Axis(labelColor=theme['text_primary'], titleColor=theme['text_primary'], gridColor=theme['chart_grid'])),
+                color=alt.Color("Player:N", scale=color_scale, legend=alt.Legend(title="Players", labelColor=theme['text_primary'], titleColor=theme['text_primary'])),
                 tooltip=["Round", "Player", "Score"]
-            ).properties(
-                height=400,
-                background=chart_bg
-            ).configure_view(
-                strokeWidth=0
-            ).interactive()
+            ).properties(height=400, background=theme['bg_primary']).configure_view(strokeWidth=0).interactive()
             
             st.altair_chart(chart, use_container_width=True)
         else:
@@ -2015,49 +1964,32 @@ else:
         
         # Final results - only show when game is properly finished
         if st.session_state.get('game_finished', False):
-            # Show celebration effects only once (when flag is set)
             if st.session_state.get('show_celebration', False):
                 st.balloons()
                 st.snow()
             
-            # Analyze game stats if not already done
             if st.session_state.game_stats is None:
                 st.session_state.game_stats = analyze_game_stats()
-                # Only set celebration to False after stats are analyzed (first load)
                 st.session_state.show_celebration = False
             
             stats = st.session_state.game_stats
             analysis = stats['analysis']
+            theme = get_theme_colors()
             
-            # Build results HTML
             winner = sorted_players[0][0]
             winner_color = st.session_state.player_colors.get(winner, "#FFD700")
-            
-            results_html = ""
             medals = ["🥇", "🥈", "🥉"] + [""] * 10
-            for i, (player, score) in enumerate(sorted_players):
-                player_color = st.session_state.player_colors.get(player, "#FFFFFF")
-                if i == 0:
-                    results_html += f"<h1 style='color:{player_color}; text-align:center; margin:10px 0;'>{medals[i]} {player} - {score} pts 👑</h1>"
-                else:
-                    results_html += f"<h3 style='color:{player_color}; text-align:center; margin:5px 0;'>{medals[i]} {player} - {score} pts</h3>"
             
-            # Theme-aware colors for popups
-            if st.session_state.dark_mode:
-                popup_bg = "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
-                popup_text = "#FFFFFF"
-                popup_subtext = "#98D8C8"
-                card_bg = "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)"
-            else:
-                popup_bg = "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%)"
-                popup_text = "#262730"
-                popup_subtext = "#495057"
-                card_bg = "linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)"
+            results_html = "".join(
+                f"<h1 style='color:{st.session_state.player_colors.get(p, '#FFFFFF')}; text-align:center; margin:10px 0;'>{medals[i]} {p} - {s} pts{' 👑' if i == 0 else ''}</h1>" if i == 0
+                else f"<h3 style='color:{st.session_state.player_colors.get(p, '#FFFFFF')}; text-align:center; margin:5px 0;'>{medals[i]} {p} - {s} pts</h3>"
+                for i, (p, s) in enumerate(sorted_players)
+            )
             
             # Celebration popup
             st.markdown(
                 f"""
-                <div style='background: {popup_bg}; 
+                <div style='background: {theme['popup_bg']}; 
                             padding: 40px; border-radius: 20px; 
                             border: 4px solid {winner_color}; 
                             margin: 30px 0; 
@@ -2066,13 +1998,13 @@ else:
                     <h1 style='color: #FFD700; font-size: 3em; margin-bottom: 20px;'>
                         🎉🏆 GAME OVER! 🏆🎉
                     </h1>
-                    <h2 style='color: {popup_text}; margin-bottom: 30px;'>
+                    <h2 style='color: {theme['text_primary']}; margin-bottom: 30px;'>
                         🧙 The Wizard Tournament Has Concluded! 🧙
                     </h2>
                     <div style='background: rgba(128,128,128,0.1); padding: 20px; border-radius: 15px; margin: 20px 0;'>
                         {results_html}
                     </div>
-                    <p style='color: {popup_subtext}; font-size: 1.2em; margin-top: 20px;'>
+                    <p style='color: {theme['stat_text']}; font-size: 1.2em; margin-top: 20px;'>
                         🎊 Congratulations to all players! 🎊
                     </p>
                 </div>
@@ -2089,39 +2021,36 @@ else:
             for i, (player, score) in enumerate(sorted_players):
                 player_color = st.session_state.player_colors.get(player, "#808080")
                 a = analysis[player]
-                # Theme-aware stat text color
-                stat_text = "#98D8C8" if st.session_state.dark_mode else "#495057"
-                score_text = "#FFFFFF" if st.session_state.dark_mode else "#262730"
                 with stat_cols[i]:
                     st.markdown(
                         f"""
-                        <div style='background: {card_bg}; 
+                        <div style='background: {theme['card_bg']}; 
                                     padding: 15px; border-radius: 15px; 
                                     border: 3px solid {player_color}; 
                                     margin: 5px 0;'>
                             <h3 style='color: {player_color}; text-align: center; margin: 0 0 10px 0;'>
                                 {medals[i]} {player}
                             </h3>
-                            <p style='color: {score_text}; text-align: center; font-size: 1.5em; margin: 5px 0;'>
+                            <p style='color: {theme['text_primary']}; text-align: center; font-size: 1.5em; margin: 5px 0;'>
                                 {score} pts
                             </p>
                             <hr style='border-color: {player_color}40;'>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 🎯 Accuracy: <b>{a['accuracy']}%</b> ({a['correct_bids']}/{a['total_rounds']})
                             </p>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 🔥 Best Round: R{a['best_round']} (+{a['best_round_score']})
                             </p>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 💀 Worst Round: R{a['worst_round']} ({a['worst_round_score']})
                             </p>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 📈 Best 3-Round: +{a['max_3round_jump']}
                             </p>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 📉 Worst 3-Round: {a['max_3round_drop']}
                             </p>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 🏆 Led {a['times_in_lead']} rounds
                             </p>
                         </div>
@@ -2158,25 +2087,18 @@ else:
             
             # Filter out None awards and display
             awards = [a for a in awards if a is not None]
-            # Theme-aware award colors
-            if st.session_state.dark_mode:
-                award_bg = "linear-gradient(135deg, #2d1b69 0%, #11998e 100%)"
-                award_stat_text = "#FFFFFF"
-            else:
-                award_bg = "linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)"
-                award_stat_text = "#262730"
             for i, (title, player, stat) in enumerate(awards):
                 player_color = st.session_state.player_colors.get(player, "#FFD700")
                 with award_cols[i % 4]:
                     st.markdown(
                         f"""
-                        <div style='background: {award_bg}; 
+                        <div style='background: {theme['roast_bg']}; 
                                     padding: 15px; border-radius: 10px; 
                                     border: 2px solid {player_color}; 
                                     margin: 5px 0; text-align: center;'>
                             <h4 style='color: #FFD700; margin: 0;'>{title}</h4>
                             <p style='color: {player_color}; font-size: 1.2em; margin: 5px 0; font-weight: bold;'>{player}</p>
-                            <p style='color: {award_stat_text}; font-size: 0.9em; margin: 0;'>{stat}</p>
+                            <p style='color: {theme['text_primary']}; font-size: 0.9em; margin: 0;'>{stat}</p>
                         </div>
                         """,
                         unsafe_allow_html=True
