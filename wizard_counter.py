@@ -23,1171 +23,305 @@ if 'dark_mode' not in st.session_state:
 
 # Generate theme-specific CSS based on toggle state
 if st.session_state.dark_mode:
-    # Dark mode colors
+    # Dark mode CSS
     theme_css = """
     <style>
-        /* ===== FORCED DARK MODE ===== */
+        /* ===== DARK MODE THEME ===== */
         :root {
-            --text-primary: #fafafa !important;
-            --text-secondary: #ccc !important;
-            --bg-primary: #0e1117 !important;
-            --bg-secondary: #262730 !important;
-            --bg-hover: #3d3d4d !important;
-            --border-color: #444 !important;
+            --text-primary: #fafafa;
+            --text-secondary: #ccc;
+            --bg-primary: #0e1117;
+            --bg-secondary: #262730;
+            --bg-hover: #3d3d4d;
+            --border-color: #444;
+            --accent: #ff4b4b;
         }
         
-        /* Force dark backgrounds */
-        .stApp, [data-testid="stAppViewContainer"], .main, [data-testid="stHeader"] {
-            background-color: #0e1117 !important;
+        /* Base backgrounds */
+        .stApp, [data-testid="stAppViewContainer"], .main, [data-testid="stHeader"] { background-color: #0e1117 !important; }
+        [data-testid="stSidebar"], [data-testid="stSidebar"] > div { background-color: #262730 !important; }
+        
+        /* Text colors */
+        body, .stApp, p, span, label, h1, h2, h3, h4, h5, h6, .stMarkdown, .stText, div, li, td, th,
+        [data-testid="stSidebar"] *, .stToggle label span, [data-testid="stWidgetLabel"] { color: #fafafa !important; }
+        
+        /* Inputs */
+        input, textarea, select, .stTextInput input, .stNumberInput input, .stSelectbox select,
+        [data-baseweb="input"] input, .stNumberInput > div > div > input {
+            background-color: #262730 !important; color: #fafafa !important; border-color: #444 !important;
         }
         
-        [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
-            background-color: #262730 !important;
-        }
+        /* Selectbox */
+        .stSelectbox > div > div, .stSelectbox [data-baseweb="select"] > div, .stSelectbox [data-baseweb="select"],
+        .stSelectbox [data-baseweb="select"] span, .stSelectbox [data-baseweb="select"] div { background-color: #262730 !important; color: #fafafa !important; }
+        [data-baseweb="popover"] [data-baseweb="menu"], [data-baseweb="popover"] ul, [data-baseweb="popover"] li { background-color: #262730 !important; color: #fafafa !important; }
+        [data-baseweb="popover"] li:hover { background-color: #3d3d4d !important; }
         
-        /* Force light text everywhere */
-        body, .stApp, p, span, label, h1, h2, h3, h4, h5, h6, 
-        .stMarkdown, .stText, div, li, td, th,
-        [data-testid="stSidebar"] * {
-            color: #fafafa !important;
-        }
+        /* Buttons */
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) { background-color: #262730 !important; color: #fafafa !important; border-color: #444 !important; }
+        [data-testid="stSidebar"] .stButton > button, [data-testid="stSidebar"] .stButton { width: 100% !important; min-width: 100% !important; }
+        [data-testid="stSidebar"] [data-testid="column"] { width: 50% !important; flex: 1 1 50% !important; }
         
-        /* Input fields */
-        input, textarea, select, .stTextInput input, .stNumberInput input, 
-        .stSelectbox select, [data-baseweb="input"] input {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border-color: #444 !important;
-        }
+        /* Radio/Tabs */
+        .stRadio > div > label { background: #262730 !important; color: #fafafa !important; }
+        .stRadio > div > label:hover { background: #3d3d4d !important; }
+        .stRadio [role="radiogroup"], .stRadio > div { background-color: transparent !important; }
+        .stRadio [role="radio"], .stRadio > div > label, .stRadio > div > div > label { background-color: #262730 !important; color: #fafafa !important; border-color: #444 !important; }
+        .stRadio [role="radio"]:hover, .stRadio > div > label:hover { background-color: #3d3d4d !important; }
+        .stRadio [role="radio"][aria-checked="true"], .stRadio > div > label[data-checked="true"], .stRadio > div > label:has(input:checked) { background-color: #ff4b4b !important; color: #ffffff !important; }
         
-        /* Selectbox - ensure visibility in dark mode */
-        .stSelectbox > div > div,
-        .stSelectbox [data-baseweb="select"] > div,
-        .stSelectbox [data-baseweb="select"] {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        .stSelectbox [data-baseweb="select"] span,
-        .stSelectbox [data-baseweb="select"] div {
-            color: #fafafa !important;
-        }
-        
-        /* Selectbox dropdown menu */
-        [data-baseweb="popover"] [data-baseweb="menu"],
-        [data-baseweb="popover"] ul,
-        [data-baseweb="popover"] li {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        [data-baseweb="popover"] li:hover {
-            background-color: #3d3d4d !important;
-        }
-        
-        /* Buttons - secondary */
-        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border-color: #444 !important;
-        }
-        
-        /* Sidebar buttons - ensure consistent sizing in dark mode */
-        [data-testid="stSidebar"] .stButton > button {
-            width: 100% !important;
-            min-width: 100% !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton {
-            width: 100% !important;
-        }
-        
-        [data-testid="stSidebar"] [data-testid="column"] {
-            width: 50% !important;
-            flex: 1 1 50% !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button[kind="primary"],
-        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] {
-            width: 100% !important;
-            min-width: 100% !important;
-        }
-        
-        /* Radio buttons / tabs */
-        .stRadio > div > label {
-            background: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        .stRadio > div > label:hover {
-            background: #3d3d4d !important;
-        }
+        /* Hide radio circles */
+        .stRadio input[type="radio"], .stRadio > div > label > div:first-child, .stRadio [data-baseweb="radio"] > div:first-child { display: none !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
         
         /* Expanders */
-        .streamlit-expanderHeader {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
+        .streamlit-expanderHeader { background-color: #262730 !important; color: #fafafa !important; }
+        .streamlit-expanderContent { background-color: #1a1a2e !important; }
         
-        .streamlit-expanderContent {
-            background-color: #1a1a2e !important;
-        }
+        /* Data frames/Tables */
+        .stDataFrame, .stDataFrame td, .stDataFrame th, table, tr, td, th, .stTable, .stTable td, .stTable th { background-color: #262730 !important; color: #fafafa !important; border-color: #444 !important; }
+        [data-testid="stDataFrame"], [data-testid="stDataFrame"] > div, [data-testid="stDataFrame"] iframe { background-color: #262730 !important; }
+        .dvn-scroller, .gdg-style, [class*="glideDataEditor"], [data-testid="stDataFrame"] [class*="cell"], [data-testid="stDataFrame"] [role="gridcell"], [data-testid="stDataFrame"] [role="columnheader"] { background-color: #262730 !important; color: #fafafa !important; }
+        [data-testid="stDataFrame"] span, [data-testid="stDataFrame"] div { color: #fafafa !important; }
         
-        /* Data frames */
-        .stDataFrame, .stDataFrame td, .stDataFrame th {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
+        /* Toggle */
+        .stToggle > label > div, [data-baseweb="checkbox"] > div:first-child { background-color: #444 !important; border: 2px solid #666 !important; }
+        .stToggle > label > div[data-checked="true"], [data-baseweb="checkbox"] > div:first-child[aria-checked="true"], [role="checkbox"][aria-checked="true"] { background-color: #ff4b4b !important; border-color: #ff4b4b !important; }
+        [data-baseweb="checkbox"] > div:first-child > div, .stToggle > label > div > div { background-color: #fafafa !important; }
         
-        /* Alerts - keep their colors but adjust */
-        .stAlert {
-            border-color: #444 !important;
-        }
+        /* Number inputs */
+        .stNumberInput button, .stNumberInput [data-testid="stNumberInputStepUp"], .stNumberInput [data-testid="stNumberInputStepDown"] { background-color: #262730 !important; color: #fafafa !important; border-color: #444 !important; }
+        .stNumberInput button:hover { background-color: #3d3d4d !important; }
+        .stNumberInput button svg { fill: #fafafa !important; stroke: #fafafa !important; }
         
-        /* Toggle switch - make visible in dark mode */
-        [data-testid="stSidebar"] .stCheckbox > label[data-baseweb="checkbox"] > span:first-child,
-        .stToggle > label > div,
-        [data-testid="stWidgetLabel"] + div [role="checkbox"],
-        [data-baseweb="checkbox"] > div:first-child {
-            background-color: #444 !important;
-            border: 2px solid #666 !important;
-        }
+        /* Tabs */
+        .stTabs [data-baseweb="tab-list"], .stTabs [data-baseweb="tab"] { background-color: #262730 !important; color: #fafafa !important; }
+        .stTabs [data-baseweb="tab"]:hover { background-color: #3d3d4d !important; }
+        .stTabs [aria-selected="true"] { background-color: #0e1117 !important; color: #fafafa !important; }
         
-        .stToggle > label > div[data-checked="true"],
-        [data-testid="stSidebar"] [data-baseweb="checkbox"] [data-checked="true"],
-        [data-baseweb="checkbox"] > div:first-child[aria-checked="true"],
-        [role="checkbox"][aria-checked="true"] {
-            background-color: #ff4b4b !important;
-            border-color: #ff4b4b !important;
-        }
+        /* Containers */
+        [data-testid="stVerticalBlock"], [data-testid="stHorizontalBlock"], .element-container, .stMarkdown, [data-testid="column"] { background-color: transparent !important; }
+        [data-testid="stMetric"], [data-testid="stMetricValue"], [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] { background-color: transparent !important; color: #fafafa !important; }
         
-        /* Toggle thumb/knob */
-        [data-baseweb="checkbox"] > div:first-child > div,
-        .stToggle > label > div > div {
-            background-color: #fafafa !important;
-        }
+        /* Charts */
+        .stPlotlyChart, .js-plotly-plot, .plotly, .plot-container, .vega-embed, [data-testid="stVegaLiteChart"] { background-color: #0e1117 !important; }
+        .js-plotly-plot .plotly .bg { fill: #0e1117 !important; }
+        .vega-embed .vega-bindings { color: #fafafa !important; }
         
-        /* Toggle label text */
-        .stToggle label span,
-        [data-testid="stWidgetLabel"] {
-            color: #fafafa !important;
-            font-size: 1.2rem !important;
-        }
-        
-        /* ===== NUMBER INPUT - Plus/Minus buttons ===== */
-        .stNumberInput button,
-        .stNumberInput [data-testid="stNumberInputStepUp"],
-        .stNumberInput [data-testid="stNumberInputStepDown"] {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border-color: #444 !important;
-        }
-        
-        .stNumberInput button:hover {
-            background-color: #3d3d4d !important;
-        }
-        
-        .stNumberInput button svg,
-        .stNumberInput [data-testid="stNumberInputStepUp"] svg,
-        .stNumberInput [data-testid="stNumberInputStepDown"] svg {
-            fill: #fafafa !important;
-            stroke: #fafafa !important;
-        }
-        
-        .stNumberInput > div > div > input {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        /* ===== RADIO BUTTONS - Tab style ===== */
-        .stRadio [role="radiogroup"],
-        .stRadio > div {
-            background-color: transparent !important;
-        }
-        
-        .stRadio [role="radio"],
-        .stRadio > div > label,
-        .stRadio > div > div > label {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border-color: #444 !important;
-        }
-        
-        .stRadio [role="radio"]:hover,
-        .stRadio > div > label:hover {
-            background-color: #3d3d4d !important;
-        }
-        
-        .stRadio [role="radio"][aria-checked="true"],
-        .stRadio > div > label[data-checked="true"],
-        .stRadio > div > label:has(input:checked) {
-            background-color: #ff4b4b !important;
-            color: #ffffff !important;
-        }
-        
-        /* Radio button circles - HIDE them */
-        .stRadio input[type="radio"],
-        .stRadio > div > label > div:first-child,
-        .stRadio [data-baseweb="radio"] > div:first-child,
-        .stRadio [data-testid="stMarkdownContainer"]:has(input[type="radio"]) > div:first-child {
-            display: none !important;
-            visibility: hidden !important;
-            width: 0 !important;
-            height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* ===== TABS ===== */
-        .stTabs [data-baseweb="tab-list"] {
-            background-color: #262730 !important;
-        }
-        
-        .stTabs [data-baseweb="tab"] {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        .stTabs [data-baseweb="tab"]:hover {
-            background-color: #3d3d4d !important;
-        }
-        
-        .stTabs [aria-selected="true"] {
-            background-color: #0e1117 !important;
-            color: #fafafa !important;
-        }
-        
-        /* ===== MAIN CONTENT CONTAINERS ===== */
-        [data-testid="stVerticalBlock"],
-        [data-testid="stHorizontalBlock"],
-        .element-container,
-        .stMarkdown,
-        [data-testid="column"] {
-            background-color: transparent !important;
-        }
-        
-        /* ===== METRIC / SCORE DISPLAYS ===== */
-        [data-testid="stMetric"],
-        [data-testid="stMetricValue"],
-        [data-testid="stMetricLabel"],
-        [data-testid="stMetricDelta"] {
-            background-color: transparent !important;
-            color: #fafafa !important;
-        }
-        
-        /* ===== CHARTS / PLOTLY ===== */
-        .stPlotlyChart,
-        .js-plotly-plot,
-        .plotly,
-        .plot-container {
-            background-color: #0e1117 !important;
-        }
-        
-        .js-plotly-plot .plotly .bg {
-            fill: #0e1117 !important;
-        }
-        
-        /* ===== TABLES / DATAFRAMES ===== */
-        table, tr, td, th,
-        .stTable, .stTable td, .stTable th {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border-color: #444 !important;
-        }
-        
-        /* Streamlit Dataframe specific */
-        .stDataFrame,
-        [data-testid="stDataFrame"],
-        [data-testid="stDataFrame"] > div,
-        [data-testid="stDataFrame"] iframe {
-            background-color: #262730 !important;
-        }
-        
-        /* Glide Data Grid (used by st.dataframe) */
-        .dvn-scroller,
-        .gdg-style,
-        [class*="glideDataEditor"],
-        [data-testid="stDataFrame"] [class*="cell"],
-        [data-testid="stDataFrame"] [role="gridcell"],
-        [data-testid="stDataFrame"] [role="columnheader"] {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        /* Ensure dataframe text is visible */
-        [data-testid="stDataFrame"] span,
-        [data-testid="stDataFrame"] div {
-            color: #fafafa !important;
-        }
-        
-        /* Altair / Vega charts */
-        .vega-embed,
-        .vega-embed .chart-wrapper,
-        [data-testid="stVegaLiteChart"],
-        [data-testid="stVegaLiteChart"] > div {
-            background-color: #0e1117 !important;
-        }
-        
-        .vega-embed .vega-bindings {
-            color: #fafafa !important;
-        }
-        
-        /* ===== CARDS / CONTAINERS ===== */
-        .stContainer,
-        [data-testid="stExpander"],
-        [data-testid="stForm"] {
-            background-color: #0e1117 !important;
-        }
+        .stContainer, [data-testid="stExpander"], [data-testid="stForm"] { background-color: #0e1117 !important; }
+        .stAlert { border-color: #444 !important; }
     </style>
     """
 else:
-    # Light mode colors
+    # Light mode CSS
     theme_css = """
     <style>
-        /* ===== FORCED LIGHT MODE ===== */
+        /* ===== LIGHT MODE THEME ===== */
         :root {
-            --text-primary: #262730 !important;
-            --text-secondary: #555 !important;
-            --bg-primary: #ffffff !important;
-            --bg-secondary: #f0f2f6 !important;
-            --bg-hover: #e0e2e6 !important;
-            --border-color: #ddd !important;
+            --text-primary: #262730;
+            --text-secondary: #555;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f0f2f6;
+            --bg-hover: #e0e2e6;
+            --border-color: #ddd;
+            --accent: #ff4b4b;
         }
         
-        /* Force light backgrounds */
-        .stApp, [data-testid="stAppViewContainer"], .main, [data-testid="stHeader"] {
-            background-color: #ffffff !important;
+        /* Base backgrounds */
+        .stApp, [data-testid="stAppViewContainer"], .main, [data-testid="stHeader"] { background-color: #ffffff !important; }
+        [data-testid="stSidebar"], [data-testid="stSidebar"] > div { background-color: #f0f2f6 !important; }
+        
+        /* Text colors */
+        body, .stApp, p, span, label, h1, h2, h3, h4, h5, h6, .stMarkdown, .stText, div, li, td, th,
+        [data-testid="stSidebar"] *, .stToggle label span, [data-testid="stWidgetLabel"] { color: #262730 !important; }
+        
+        /* Sidebar button text - force black */
+        [data-testid="stSidebar"] button, [data-testid="stSidebar"] button *, [data-testid="stSidebar"] .stButton button * { color: #000000 !important; -webkit-text-fill-color: #000000 !important; }
+        
+        /* Inputs */
+        input, textarea, select, .stTextInput input, .stNumberInput input, .stSelectbox select,
+        [data-baseweb="input"] input, .stNumberInput > div > div > input {
+            background-color: #ffffff !important; color: #262730 !important; border: 1px solid #888 !important; border-radius: 4px !important;
         }
         
-        [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
-            background-color: #f0f2f6 !important;
-        }
+        /* Sidebar inputs */
+        [data-testid="stSidebar"] .stTextInput > div > div, [data-testid="stSidebar"] [data-baseweb="base-input"], [data-testid="stSidebar"] [data-baseweb="input"] { background-color: #ffffff !important; border: 1px solid #555 !important; border-radius: 4px !important; }
+        [data-testid="stSidebar"] input, [data-testid="stSidebar"] .stTextInput input { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; border: none !important; }
         
-        /* Force dark text everywhere */
-        body, .stApp, p, span, label, h1, h2, h3, h4, h5, h6, 
-        .stMarkdown, .stText, div, li, td, th,
-        [data-testid="stSidebar"] * {
-            color: #262730 !important;
-        }
+        /* Selectbox */
+        .stSelectbox > div > div, .stSelectbox [data-baseweb="select"] > div, .stSelectbox [data-baseweb="select"],
+        .stSelectbox [data-baseweb="select"] span, .stSelectbox [data-baseweb="select"] div { background-color: #ffffff !important; color: #262730 !important; }
+        [data-baseweb="popover"] [data-baseweb="menu"], [data-baseweb="popover"] ul, [data-baseweb="popover"] li { background-color: #ffffff !important; color: #262730 !important; }
+        [data-baseweb="popover"] li:hover { background-color: #f0f2f6 !important; }
         
-        /* CRITICAL: Force sidebar button text to be black - placed early for higher specificity cascade */
-        [data-testid="stSidebar"] button,
-        [data-testid="stSidebar"] button *,
-        [data-testid="stSidebar"] .stButton button,
-        [data-testid="stSidebar"] .stButton button * {
-            color: #000000 !important;
-            -webkit-text-fill-color: #000000 !important;
-        }
+        /* Secondary buttons */
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) { background-color: #e8e8e8 !important; color: #1a1a1a !important; border: 2px solid #999 !important; }
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]):hover { background-color: #d0d0d0 !important; border-color: #666 !important; }
         
-        /* Input fields */
-        input, textarea, select, .stTextInput input, .stNumberInput input, 
-        .stSelectbox select, [data-baseweb="input"] input {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-            border: 1px solid #888 !important;
-            border-radius: 4px !important;
-        }
+        /* Sidebar buttons */
+        [data-testid="stSidebar"] .stButton > button { background-color: #d8d8d8 !important; color: #000000 !important; border: 2px solid #888 !important; font-weight: 600 !important; width: 100% !important; min-width: 100% !important; }
+        [data-testid="stSidebar"] .stButton { width: 100% !important; }
+        [data-testid="stSidebar"] [data-testid="column"] { width: 50% !important; flex: 1 1 50% !important; }
+        [data-testid="stSidebar"] .stButton > button:hover { background-color: #c0c0c0 !important; border-color: #555 !important; }
+        [data-testid="stSidebar"] .stButton > button[kind="primary"], [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] { background-color: #ff4b4b !important; color: #ffffff !important; border: 2px solid #cc0000 !important; }
         
-        /* Sidebar input fields - ensure high visibility */
-        [data-testid="stSidebar"] .stTextInput > div > div,
-        [data-testid="stSidebar"] [data-baseweb="base-input"],
-        [data-testid="stSidebar"] [data-baseweb="input"] {
-            background-color: #ffffff !important;
-            border: 1px solid #555 !important;
-            border-radius: 4px !important;
-        }
+        /* Primary button text white */
+        [data-testid="stSidebar"] .stButton > button[kind="primary"] *, .stButton > button[kind="primary"] *, .stButton > button[data-testid="baseButton-primary"] * { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
         
-        [data-testid="stSidebar"] input,
-        [data-testid="stSidebar"] .stTextInput input,
-        [data-testid="stSidebar"] [data-baseweb="input"] input {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            -webkit-text-fill-color: #000000 !important;
-            border: none !important;
-        }
+        /* Disabled buttons */
+        .stButton > button:disabled, .stButton > button[disabled] { background-color: #e0e0e0 !important; color: #888888 !important; border: 1px solid #bbb !important; opacity: 0.7 !important; cursor: not-allowed !important; }
+        .stButton > button:disabled *, .stButton > button[disabled] * { color: #888888 !important; -webkit-text-fill-color: #888888 !important; }
         
-        [data-testid="stSidebar"] .stTextInput label,
-        [data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
-            color: #262730 !important;
-        }
+        /* Radio/Tabs */
+        .stRadio > div > label { background: #f0f2f6 !important; color: #262730 !important; }
+        .stRadio > div > label:hover { background: #e0e2e6 !important; }
+        .stRadio [role="radiogroup"], .stRadio > div { background-color: transparent !important; }
+        .stRadio [role="radio"], .stRadio > div > label, .stRadio > div > div > label { background-color: #f0f2f6 !important; color: #262730 !important; border-color: #ddd !important; }
+        .stRadio [role="radio"]:hover, .stRadio > div > label:hover { background-color: #e0e2e6 !important; }
+        .stRadio [role="radio"][aria-checked="true"], .stRadio > div > label[data-checked="true"], .stRadio > div > label:has(input:checked) { background-color: #ff4b4b !important; color: #ffffff !important; }
         
-        /* Selectbox - ensure visibility in light mode */
-        .stSelectbox > div > div,
-        .stSelectbox [data-baseweb="select"] > div,
-        .stSelectbox [data-baseweb="select"] {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        
-        .stSelectbox [data-baseweb="select"] span,
-        .stSelectbox [data-baseweb="select"] div {
-            color: #262730 !important;
-        }
-        
-        /* Selectbox dropdown menu */
-        [data-baseweb="popover"] [data-baseweb="menu"],
-        [data-baseweb="popover"] ul,
-        [data-baseweb="popover"] li {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        
-        [data-baseweb="popover"] li:hover {
-            background-color: #f0f2f6 !important;
-        }
-        
-        /* Buttons - secondary */
-        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
-            background-color: #e8e8e8 !important;
-            color: #1a1a1a !important;
-            border: 2px solid #999 !important;
-        }
-        
-        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]):hover {
-            background-color: #d0d0d0 !important;
-            color: #1a1a1a !important;
-            border-color: #666 !important;
-        }
-        
-        /* Sidebar buttons - ensure visible in light mode */
-        [data-testid="stSidebar"] .stButton > button {
-            background-color: #d8d8d8 !important;
-            color: #000000 !important;
-            border: 2px solid #888 !important;
-            font-weight: 600 !important;
-            width: 100% !important;
-            min-width: 100% !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton {
-            width: 100% !important;
-        }
-        
-        [data-testid="stSidebar"] [data-testid="column"] {
-            width: 50% !important;
-            flex: 1 1 50% !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button:hover {
-            background-color: #c0c0c0 !important;
-            color: #000000 !important;
-            border-color: #555 !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button[kind="primary"],
-        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] {
-            background-color: #ff4b4b !important;
-            color: #ffffff !important;
-            border: 2px solid #cc0000 !important;
-            width: 100% !important;
-        }
-        
-        /* Button text visibility - FORCE black text on all button elements */
-        .stButton > button *,
-        [data-testid="stSidebar"] .stButton > button *,
-        [data-testid="stSidebar"] .stButton > button p,
-        [data-testid="stSidebar"] .stButton > button span,
-        [data-testid="stSidebar"] .stButton > button div,
-        [data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"],
-        [data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"] p {
-            color: #000000 !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button[kind="primary"] *,
-        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] *,
-        .stButton > button[kind="primary"] *,
-        .stButton > button[data-testid="baseButton-primary"] * {
-            color: #ffffff !important;
-        }
-        
-        /* Disabled buttons - ensure visible in light mode */
-        .stButton > button:disabled,
-        .stButton > button[disabled] {
-            background-color: #e0e0e0 !important;
-            color: #888888 !important;
-            border: 1px solid #bbb !important;
-            opacity: 0.7 !important;
-            cursor: not-allowed !important;
-        }
-        
-        .stButton > button:disabled *,
-        .stButton > button[disabled] * {
-            color: #888888 !important;
-            -webkit-text-fill-color: #888888 !important;
-        }
-        
-        /* Radio buttons / tabs */
-        .stRadio > div > label {
-            background: #f0f2f6 !important;
-            color: #262730 !important;
-        }
-        
-        .stRadio > div > label:hover {
-            background: #e0e2e6 !important;
-        }
+        /* Hide radio circles */
+        .stRadio input[type="radio"], .stRadio > div > label > div:first-child, .stRadio [data-baseweb="radio"] > div:first-child { display: none !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
         
         /* Expanders */
-        .streamlit-expanderHeader {
-            background-color: #f0f2f6 !important;
-            color: #262730 !important;
-        }
+        .streamlit-expanderHeader { background-color: #f0f2f6 !important; color: #262730 !important; }
+        .streamlit-expanderContent { background-color: #ffffff !important; }
         
-        .streamlit-expanderContent {
-            background-color: #ffffff !important;
-        }
+        /* Data frames/Tables */
+        .stDataFrame, .stDataFrame td, .stDataFrame th, table, tr, td, th, .stTable, .stTable td, .stTable th { background-color: #ffffff !important; color: #262730 !important; border-color: #ddd !important; }
+        [data-testid="stDataFrame"], [data-testid="stDataFrame"] > div, [data-testid="stDataFrame"] iframe { background-color: #ffffff !important; }
+        .dvn-scroller, .gdg-style, [class*="glideDataEditor"], [data-testid="stDataFrame"] [class*="cell"], [data-testid="stDataFrame"] [role="gridcell"], [data-testid="stDataFrame"] [role="columnheader"] { background-color: #ffffff !important; color: #262730 !important; }
+        [data-testid="stDataFrame"] span, [data-testid="stDataFrame"] div { color: #262730 !important; }
         
-        /* Data frames */
-        .stDataFrame, .stDataFrame td, .stDataFrame th {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
+        /* Toggle */
+        .stToggle > label > div, [data-baseweb="checkbox"] > div:first-child { background-color: #ccc !important; border: 2px solid #999 !important; }
+        .stToggle > label > div[data-checked="true"], [data-baseweb="checkbox"] > div:first-child[aria-checked="true"], [role="checkbox"][aria-checked="true"] { background-color: #ff4b4b !important; border-color: #ff4b4b !important; }
+        [data-baseweb="checkbox"] > div:first-child > div, .stToggle > label > div > div { background-color: #ffffff !important; }
         
-        /* Toggle switch - make visible in light mode */
-        [data-testid="stSidebar"] .stCheckbox > label[data-baseweb="checkbox"] > span:first-child,
-        .stToggle > label > div,
-        [data-testid="stWidgetLabel"] + div [role="checkbox"],
-        [data-baseweb="checkbox"] > div:first-child {
-            background-color: #ccc !important;
-            border: 2px solid #999 !important;
-        }
+        /* Number inputs */
+        .stNumberInput button, .stNumberInput [data-testid="stNumberInputStepUp"], .stNumberInput [data-testid="stNumberInputStepDown"] { background-color: #f0f2f6 !important; color: #262730 !important; border-color: #ddd !important; }
+        .stNumberInput button:hover { background-color: #e0e2e6 !important; }
+        .stNumberInput button svg { fill: #262730 !important; stroke: #262730 !important; }
         
-        .stToggle > label > div[data-checked="true"],
-        [data-testid="stSidebar"] [data-baseweb="checkbox"] [data-checked="true"],
-        [data-baseweb="checkbox"] > div:first-child[aria-checked="true"],
-        [role="checkbox"][aria-checked="true"] {
-            background-color: #ff4b4b !important;
-            border-color: #ff4b4b !important;
-        }
+        /* Tabs */
+        .stTabs [data-baseweb="tab-list"], .stTabs [data-baseweb="tab"] { background-color: #f0f2f6 !important; color: #262730 !important; }
+        .stTabs [data-baseweb="tab"]:hover { background-color: #e0e2e6 !important; }
+        .stTabs [aria-selected="true"] { background-color: #ffffff !important; color: #262730 !important; }
         
-        /* Toggle thumb/knob */
-        [data-baseweb="checkbox"] > div:first-child > div,
-        .stToggle > label > div > div {
-            background-color: #ffffff !important;
-        }
+        /* Containers */
+        [data-testid="stVerticalBlock"], [data-testid="stHorizontalBlock"], .element-container, .stMarkdown, [data-testid="column"] { background-color: transparent !important; }
+        [data-testid="stMetric"], [data-testid="stMetricValue"], [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] { background-color: transparent !important; color: #262730 !important; }
         
-        /* Toggle label text */
-        .stToggle label span,
-        [data-testid="stWidgetLabel"] {
-            color: #262730 !important;
-            font-size: 1.2rem !important;
-        }
+        /* Charts */
+        .stPlotlyChart, .js-plotly-plot, .plotly, .plot-container, .vega-embed, [data-testid="stVegaLiteChart"] { background-color: #ffffff !important; }
+        .js-plotly-plot .plotly .bg { fill: #ffffff !important; }
+        .vega-embed .vega-bindings { color: #262730 !important; }
         
-        /* ===== NUMBER INPUT - Plus/Minus buttons ===== */
-        .stNumberInput button,
-        .stNumberInput [data-testid="stNumberInputStepUp"],
-        .stNumberInput [data-testid="stNumberInputStepDown"] {
-            background-color: #f0f2f6 !important;
-            color: #262730 !important;
-            border-color: #ddd !important;
-        }
-        
-        .stNumberInput button:hover {
-            background-color: #e0e2e6 !important;
-        }
-        
-        .stNumberInput button svg,
-        .stNumberInput [data-testid="stNumberInputStepUp"] svg,
-        .stNumberInput [data-testid="stNumberInputStepDown"] svg {
-            fill: #262730 !important;
-            stroke: #262730 !important;
-        }
-        
-        .stNumberInput > div > div > input {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        
-        /* ===== RADIO BUTTONS - Tab style ===== */
-        .stRadio [role="radiogroup"],
-        .stRadio > div {
-            background-color: transparent !important;
-        }
-        
-        .stRadio [role="radio"],
-        .stRadio > div > label,
-        .stRadio > div > div > label {
-            background-color: #f0f2f6 !important;
-            color: #262730 !important;
-            border-color: #ddd !important;
-        }
-        
-        .stRadio [role="radio"]:hover,
-        .stRadio > div > label:hover {
-            background-color: #e0e2e6 !important;
-        }
-        
-        .stRadio [role="radio"][aria-checked="true"],
-        .stRadio > div > label[data-checked="true"],
-        .stRadio > div > label:has(input:checked) {
-            background-color: #ff4b4b !important;
-            color: #ffffff !important;
-        }
-        
-        /* Radio button circles - HIDE them */
-        .stRadio input[type="radio"],
-        .stRadio > div > label > div:first-child,
-        .stRadio [data-baseweb="radio"] > div:first-child,
-        .stRadio [data-testid="stMarkdownContainer"]:has(input[type="radio"]) > div:first-child {
-            display: none !important;
-            visibility: hidden !important;
-            width: 0 !important;
-            height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* ===== TABS ===== */
-        .stTabs [data-baseweb="tab-list"] {
-            background-color: #f0f2f6 !important;
-        }
-        
-        .stTabs [data-baseweb="tab"] {
-            background-color: #f0f2f6 !important;
-            color: #262730 !important;
-        }
-        
-        .stTabs [data-baseweb="tab"]:hover {
-            background-color: #e0e2e6 !important;
-        }
-        
-        .stTabs [aria-selected="true"] {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        
-        /* ===== MAIN CONTENT CONTAINERS ===== */
-        [data-testid="stVerticalBlock"],
-        [data-testid="stHorizontalBlock"],
-        .element-container,
-        .stMarkdown,
-        [data-testid="column"] {
-            background-color: transparent !important;
-        }
-        
-        /* ===== METRIC / SCORE DISPLAYS ===== */
-        [data-testid="stMetric"],
-        [data-testid="stMetricValue"],
-        [data-testid="stMetricLabel"],
-        [data-testid="stMetricDelta"] {
-            background-color: transparent !important;
-            color: #262730 !important;
-        }
-        
-        /* ===== CHARTS / PLOTLY ===== */
-        .stPlotlyChart,
-        .js-plotly-plot,
-        .plotly,
-        .plot-container {
-            background-color: #ffffff !important;
-        }
-        
-        .js-plotly-plot .plotly .bg {
-            fill: #ffffff !important;
-        }
-        
-        /* ===== TABLES / DATAFRAMES ===== */
-        table, tr, td, th,
-        .stTable, .stTable td, .stTable th {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-            border-color: #ddd !important;
-        }
-        
-        /* Streamlit Dataframe specific */
-        .stDataFrame,
-        [data-testid="stDataFrame"],
-        [data-testid="stDataFrame"] > div,
-        [data-testid="stDataFrame"] iframe {
-            background-color: #ffffff !important;
-        }
-        
-        /* Glide Data Grid (used by st.dataframe) */
-        .dvn-scroller,
-        .gdg-style,
-        [class*="glideDataEditor"],
-        [data-testid="stDataFrame"] [class*="cell"],
-        [data-testid="stDataFrame"] [role="gridcell"],
-        [data-testid="stDataFrame"] [role="columnheader"] {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        
-        /* Ensure dataframe text is visible */
-        [data-testid="stDataFrame"] span,
-        [data-testid="stDataFrame"] div {
-            color: #262730 !important;
-        }
-        
-        /* Altair / Vega charts */
-        .vega-embed,
-        .vega-embed .chart-wrapper,
-        [data-testid="stVegaLiteChart"],
-        [data-testid="stVegaLiteChart"] > div {
-            background-color: #ffffff !important;
-        }
-        
-        .vega-embed .vega-bindings {
-            color: #262730 !important;
-        }
-        
-        /* ===== CARDS / CONTAINERS ===== */
-        .stContainer,
-        [data-testid="stExpander"],
-        [data-testid="stForm"] {
-            background-color: #ffffff !important;
-        }
+        .stContainer, [data-testid="stExpander"], [data-testid="stForm"] { background-color: #ffffff !important; }
     </style>
     """
 
 st.markdown(theme_css, unsafe_allow_html=True)
 
+# Always-applied CSS (layout, sizing, touch targets)
 st.markdown("""
 <style>
-    /* ===== SIDEBAR COLLAPSE BUTTON - Always visible ===== */
-    [data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapseButton"],
-    button[kind="header"],
-    [data-testid="baseButton-header"] {
-        opacity: 1 !important;
-        visibility: visible !important;
-        display: flex !important;
+    /* ===== SIDEBAR COLLAPSE BUTTON ===== */
+    [data-testid="collapsedControl"], [data-testid="stSidebarCollapseButton"], button[kind="header"], [data-testid="baseButton-header"],
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"], [data-testid="stSidebarNav"] button, section[data-testid="stSidebar"] > div:first-child button {
+        opacity: 1 !important; visibility: visible !important; display: flex !important;
     }
     
-    /* Make sure the collapse arrow is always visible */
-    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebarNav"] button,
-    section[data-testid="stSidebar"] > div:first-child button {
-        opacity: 1 !important;
-        visibility: visible !important;
-    }
+    /* ===== BUTTONS ===== */
+    .stButton > button { min-height: 54px !important; font-size: 1.1rem !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; margin: 6px 0 !important; font-weight: 500 !important; color: var(--text-primary, inherit) !important; }
+    .stButton > button[kind="primary"], .stButton > button[data-testid="baseButton-primary"] { min-height: 60px !important; font-size: 1.25rem !important; font-weight: 600 !important; color: white !important; }
+    .stButton > button[kind="secondary"], .stButton > button[data-testid="baseButton-secondary"] { color: var(--text-primary, inherit) !important; background: var(--bg-secondary, #f0f2f6) !important; border: 1px solid var(--border-color, #ddd) !important; }
+    .stButton > button[kind="secondary"]:hover { background: var(--bg-hover, #e0e2e6) !important; }
+    button:active, .stButton > button:active { transform: scale(0.97) !important; transition: transform 0.1s !important; }
     
-    /* ===== BUTTONS - Larger touch targets ===== */
-    .stButton > button {
-        min-height: 54px !important;
-        font-size: 1.1rem !important;
-        padding: 0.75rem 1.5rem !important;
-        border-radius: 12px !important;
-        margin: 6px 0 !important;
-        font-weight: 500 !important;
-    }
+    /* ===== NUMBER INPUTS ===== */
+    .stNumberInput > div > div > input { font-size: 1.5rem !important; height: 54px !important; text-align: center !important; font-weight: 600 !important; color: var(--text-primary, inherit) !important; }
+    .stNumberInput button { min-width: 48px !important; min-height: 48px !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 !important; }
+    .stNumberInput button svg { width: 18px !important; height: 18px !important; position: relative !important; top: -5px !important; }
+    .stNumberInput [data-testid="stNumberInputStepUp"], .stNumberInput [data-testid="stNumberInputStepDown"] { width: 48px !important; height: 48px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
     
-    /* Primary buttons even more prominent */
-    .stButton > button[kind="primary"],
-    .stButton > button[data-testid="baseButton-primary"] {
-        min-height: 60px !important;
-        font-size: 1.25rem !important;
-        font-weight: 600 !important;
-    }
-    
-    /* ===== NUMBER INPUTS - Larger steppers ===== */
-    .stNumberInput > div > div > input {
-        font-size: 1.5rem !important;
-        height: 54px !important;
-        text-align: center !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Make +/- stepper buttons properly sized and centered */
-    .stNumberInput button {
-        min-width: 48px !important;
-        min-height: 48px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 0 !important;
-    }
-    
-    .stNumberInput button svg {
-        width: 18px !important;
-        height: 18px !important;
-        position: relative !important;
-        top: -5px !important;
-    }
-    
-    .stNumberInput [data-testid="stNumberInputStepUp"],
-    .stNumberInput [data-testid="stNumberInputStepDown"] {
-        width: 48px !important;
-        height: 48px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    /* ===== RADIO BUTTONS - Tab navigation ===== */
-    .stRadio > div {
-        gap: 8px !important;
-    }
-    
-    .stRadio > div > label {
-        padding: 14px 24px !important;
-        font-size: 1.15rem !important;
-        border-radius: 12px !important;
-        min-height: 52px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        background: var(--bg-secondary, #f0f2f6) !important;
-        border: 2px solid transparent !important;
-        transition: all 0.15s ease !important;
-        font-weight: 500 !important;
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    .stRadio > div > label:hover {
-        background: var(--bg-hover, #e0e2e6) !important;
-        transform: scale(1.02) !important;
-    }
-    
-    .stRadio > div > label[data-checked="true"],
-    .stRadio > div > label:has(input:checked) {
-        background: #ff4b4b !important;
-        color: white !important;
-        border-color: #ff4b4b !important;
-    }
+    /* ===== RADIO BUTTONS (Tab Style) ===== */
+    .stRadio > div { gap: 8px !important; }
+    .stRadio > div > label { padding: 14px 24px !important; font-size: 1.15rem !important; border-radius: 12px !important; min-height: 52px !important; display: flex !important; align-items: center !important; justify-content: center !important; background: var(--bg-secondary, #f0f2f6) !important; border: 2px solid transparent !important; transition: all 0.15s ease !important; font-weight: 500 !important; color: var(--text-primary, inherit) !important; }
+    .stRadio > div > label:hover { background: var(--bg-hover, #e0e2e6) !important; transform: scale(1.02) !important; }
+    .stRadio > div > label[data-checked="true"], .stRadio > div > label:has(input:checked) { background: #ff4b4b !important; color: white !important; border-color: #ff4b4b !important; }
     
     /* ===== SELECT BOXES ===== */
-    .stSelectbox > div > div {
-        min-height: 52px !important;
-        font-size: 1.1rem !important;
-    }
-    
-    .stSelectbox [data-baseweb="select"] {
-        min-height: 52px !important;
-    }
+    .stSelectbox > div > div { min-height: 52px !important; font-size: 1.1rem !important; color: var(--text-primary, inherit) !important; }
+    .stSelectbox [data-baseweb="select"] { min-height: 52px !important; }
     
     /* ===== TEXT INPUTS ===== */
-    .stTextInput > div > div > input {
-        min-height: 52px !important;
-        font-size: 1.1rem !important;
-        padding: 0 12px !important;
-        line-height: 52px !important;
-        display: flex !important;
-        align-items: center !important;
-    }
+    .stTextInput > div > div > input { min-height: 52px !important; font-size: 1.1rem !important; padding: 0 12px !important; line-height: 52px !important; display: flex !important; align-items: center !important; color: var(--text-primary, inherit) !important; }
+    [data-testid="stSidebar"] .stTextInput > div > div > input { min-height: 44px !important; height: 44px !important; padding: 0 12px !important; padding-bottom: 4px !important; line-height: 40px !important; }
     
-    /* Sidebar text input vertical centering */
-    [data-testid="stSidebar"] .stTextInput > div > div > input {
-        min-height: 44px !important;
-        height: 44px !important;
-        padding: 0 12px !important;
-        padding-bottom: 4px !important;
-        line-height: 40px !important;
-    }
-    
-    /* ===== API KEY SAVE BUTTON - Touch optimized ===== */
-    [data-testid="stSidebar"] button[kind="secondary"]:has(p:contains("💾")),
-    [data-testid="stSidebar"] .stButton > button {
-        min-height: 44px !important;
-        min-width: 44px !important;
-        font-size: 1.3rem !important;
-        padding: 8px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    /* ===== CHECKBOXES - Larger tap targets ===== */
-    .stCheckbox > label {
-        padding: 10px 0 !important;
-        min-height: 48px !important;
-        display: flex !important;
-        align-items: center !important;
-    }
-    
-    .stCheckbox > label > span {
-        font-size: 1.1rem !important;
-    }
-    
-    .stCheckbox > label > div[data-testid="stCheckbox"] {
-        width: 26px !important;
-        height: 26px !important;
-    }
+    /* ===== CHECKBOXES ===== */
+    .stCheckbox > label { padding: 10px 0 !important; min-height: 48px !important; display: flex !important; align-items: center !important; }
+    .stCheckbox > label > span { font-size: 1.1rem !important; }
+    .stCheckbox > label > div[data-testid="stCheckbox"] { width: 26px !important; height: 26px !important; }
     
     /* ===== EXPANDERS ===== */
-    .streamlit-expanderHeader {
-        font-size: 1.15rem !important;
-        min-height: 52px !important;
-        padding: 12px !important;
-    }
+    .streamlit-expanderHeader { font-size: 1.15rem !important; min-height: 52px !important; padding: 12px !important; color: var(--text-primary, inherit) !important; }
     
-    /* ===== SPACING & LAYOUT ===== */
-    [data-testid="column"] {
-        padding: 0 10px !important;
-    }
+    /* ===== LAYOUT ===== */
+    [data-testid="column"] { padding: 0 10px !important; }
+    .stForm > div > div { margin-bottom: 1rem !important; }
+    .block-container { padding: 1rem 2rem 3rem 2rem !important; }
     
-    /* More space between form elements */
-    .stForm > div > div {
-        margin-bottom: 1rem !important;
-    }
-    
-    /* ===== SUBHEADERS & TEXT ===== */
-    h2, .stSubheader {
-        font-size: 1.6rem !important;
-        margin-top: 1.5rem !important;
-    }
-    
-    h3 {
-        font-size: 1.3rem !important;
-    }
-    
-    /* Player name labels larger */
-    .stNumberInput label, .stTextInput label {
-        font-size: 1.1rem !important;
-        font-weight: 600 !important;
-    }
-    
-    /* ===== TOUCH FEEDBACK ===== */
-    button:active, .stButton > button:active {
-        transform: scale(0.97) !important;
-        transition: transform 0.1s !important;
-    }
+    /* ===== TYPOGRAPHY ===== */
+    h2, .stSubheader { font-size: 1.6rem !important; margin-top: 1.5rem !important; }
+    h3 { font-size: 1.3rem !important; }
+    .stNumberInput label, .stTextInput label, .stSelectbox label { font-size: 1.1rem !important; font-weight: 600 !important; color: var(--text-primary, inherit) !important; }
+    .stMarkdown, .stText, p, span, label { color: var(--text-primary, inherit) !important; }
+    .stCaption, [data-testid="stCaption"] { color: var(--text-secondary, #555) !important; }
     
     /* ===== DATA TABLES ===== */
-    .stDataFrame td, .stDataFrame th {
-        font-size: 1rem !important;
-        padding: 12px 8px !important;
-    }
+    .stDataFrame td, .stDataFrame th { font-size: 1rem !important; padding: 12px 8px !important; }
     
-    /* ===== ALERTS & INFO BOXES ===== */
-    .stAlert, .stInfo, .stWarning, .stSuccess, .stError {
-        padding: 16px !important;
-        font-size: 1.05rem !important;
-        border-radius: 10px !important;
-    }
+    /* ===== ALERTS ===== */
+    .stAlert, .stInfo, .stWarning, .stSuccess, .stError { padding: 16px !important; font-size: 1.05rem !important; border-radius: 10px !important; }
+    .stAlert p, .stInfo p, .stWarning p, .stSuccess p, .stError p { color: inherit !important; }
     
-    /* ===== DIALOG/MODAL BUTTONS ===== */
-    [data-testid="stModal"] button {
-        min-height: 50px !important;
-        min-width: 50px !important;
-    }
+    /* ===== MODALS ===== */
+    [data-testid="stModal"] button { min-height: 50px !important; min-width: 50px !important; }
     
-    /* ===== COLOR PICKER ===== */
-    .stColorPicker > div {
-        min-height: 48px !important;
-    }
-    
-    /* ===== SLIDER ===== */
-    .stSlider > div {
-        padding: 10px 0 !important;
-    }
-    
-    .stSlider [data-testid="stThumbValue"] {
-        font-size: 1.1rem !important;
-    }
-    
-    /* ===== TABS CONTAINER PADDING ===== */
-    .block-container {
-        padding: 1rem 2rem 3rem 2rem !important;
-    }
+    /* ===== SLIDERS ===== */
+    .stSlider > div { padding: 10px 0 !important; }
+    .stSlider [data-testid="stThumbValue"] { font-size: 1.1rem !important; }
     
     /* ===== DOWNLOAD BUTTON ===== */
-    .stDownloadButton > button {
-        min-height: 54px !important;
-        font-size: 1.1rem !important;
-    }
+    .stDownloadButton > button { min-height: 54px !important; font-size: 1.1rem !important; }
     
-    /* ===== SIDEBAR PLAYER ROW - Vertical centering ===== */
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
-        align-items: center !important;
-    }
+    /* ===== COLOR PICKER ===== */
+    .stColorPicker > div { min-height: 48px !important; }
+    [data-testid="stSidebar"] .stColorPicker { margin: 0 !important; padding: 0 !important; }
+    [data-testid="stSidebar"] .stColorPicker > div { min-height: 36px !important; height: 36px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+    [data-testid="stSidebar"] .stColorPicker label { display: none !important; }
     
-    [data-testid="stSidebar"] [data-testid="column"] {
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-        align-items: center !important;
-    }
+    /* ===== SIDEBAR LAYOUT ===== */
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] { align-items: center !important; }
+    [data-testid="stSidebar"] [data-testid="column"] { display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; }
+    [data-testid="stSidebar"] * { color: var(--text-primary, inherit); }
+    .player-name-cell { display: flex !important; align-items: center !important; height: 36px !important; font-weight: 500 !important; margin: 0 !important; padding: 0 !important; }
     
-    /* Player name text centering */
-    .player-name-cell {
-        display: flex !important;
-        align-items: center !important;
-        height: 36px !important;
-        font-weight: 500 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
+    /* Sidebar button sizing */
+    [data-testid="stSidebar"] button[kind="secondary"]:has(p:contains("💾")), [data-testid="stSidebar"] .stButton > button { min-height: 44px !important; min-width: 44px !important; font-size: 1.3rem !important; padding: 8px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+    [data-testid="stSidebar"] [data-testid="column"] .stButton { display: flex !important; justify-content: center !important; align-items: center !important; margin: 0 !important; padding: 0 !important; width: auto !important; max-width: none !important; }
+    [data-testid="stSidebar"] [data-testid="column"] .stButton > button:not([data-baseweb="button"]) { min-height: 36px !important; min-width: 36px !important; }
     
-    /* Sidebar color picker adjustments */
-    [data-testid="stSidebar"] .stColorPicker {
-        margin: 0 !important;
-        padding: 0 !important;
-    }
+    /* Sidebar horizontal button layout */
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton { width: 100% !important; flex: 1 !important; }
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton > button { height: 44px !important; min-height: 44px !important; max-height: 44px !important; width: 100% !important; min-width: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; box-sizing: border-box !important; }
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"] { flex: 1 1 0 !important; width: 0 !important; min-width: 0 !important; }
     
-    [data-testid="stSidebar"] .stColorPicker > div {
-        min-height: 36px !important;
-        height: 36px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    [data-testid="stSidebar"] .stColorPicker label {
-        display: none !important;
-    }
-    
-    /* Sidebar button adjustments for player row */
-    [data-testid="stSidebar"] [data-testid="column"] .stButton {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: auto !important;
-        max-width: none !important;
-    }
-    
-    /* Small buttons in sidebar (like remove player X buttons) */
-    [data-testid="stSidebar"] [data-testid="column"] .stButton > button:not([data-baseweb="button"]) {
-        min-height: 36px !important;
-        min-width: 36px !important;
-    }
-    
-    /* Full-width sidebar buttons in columns - ALL buttons get consistent height and width */
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton {
-        width: 100% !important;
-        flex: 1 !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton > button {
-        height: 44px !important;
-        min-height: 44px !important;
-        max-height: 44px !important;
-        width: 100% !important;
-        min-width: 100% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        box-sizing: border-box !important;
-    }
-    
-    /* Ensure columns in horizontal blocks are equal width */
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-        flex: 1 1 0 !important;
-        width: 0 !important;
-        min-width: 0 !important;
-    }
-    
-    /* Override max-width on ALL button inner elements */
-    [data-testid="stSidebar"] [data-testid="column"] .stButton > button > div {
-        max-width: none !important;
-        width: auto !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        flex: none !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="column"] .stButton > button > div > p {
-        max-width: none !important;
-        width: auto !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        text-align: center !important;
-        flex: none !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="column"] .stButton > button p {
-        max-width: unset !important;
-    }
-    
-    /* Fix for stMarkdownContainer inside buttons - the element causing width: 100% issue */
-    [data-testid="stSidebar"] [data-testid="column"] .stButton [data-testid="stMarkdownContainer"],
-    [data-testid="stSidebar"] [data-testid="column"] .stButton button div[data-testid="stMarkdownContainer"],
-    [data-testid="stSidebar"] .stButton [data-testid="stMarkdownContainer"],
-    .stButton [data-testid="stMarkdownContainer"] {
-        width: auto !important;
-        max-width: none !important;
-        min-width: 0 !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="column"] .stButton [data-testid="stMarkdownContainer"] p,
-    [data-testid="stSidebar"] .stButton [data-testid="stMarkdownContainer"] p,
-    .stButton [data-testid="stMarkdownContainer"] p {
-        width: auto !important;
-        max-width: none !important;
-        margin: 0 !important;
-        text-align: center !important;
-    }
-    
-    /* Direct class targeting for emotion-cache containers in buttons */
-    [data-testid="stSidebar"] [data-testid="column"] .stButton button div[class*="emotion-cache"] {
-        width: auto !important;
-        max-width: none !important;
-    }
-    
-    /* ===== THEME-AWARE TEXT & CONTRAST ===== */
-    /* Ensure text is readable on both light and dark backgrounds */
-    .stMarkdown, .stText, p, span, label {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Button text should always have good contrast */
-    .stButton > button {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Primary buttons always white text on red */
-    .stButton > button[kind="primary"],
-    .stButton > button[data-testid="baseButton-primary"] {
-        color: white !important;
-    }
-    
-    /* Secondary buttons theme-aware */
-    .stButton > button[kind="secondary"],
-    .stButton > button[data-testid="baseButton-secondary"] {
-        color: var(--text-primary, inherit) !important;
-        background: var(--bg-secondary, #f0f2f6) !important;
-        border: 1px solid var(--border-color, #ddd) !important;
-    }
-    
-    .stButton > button[kind="secondary"]:hover,
-    .stButton > button[data-testid="baseButton-secondary"]:hover {
-        background: var(--bg-hover, #e0e2e6) !important;
-    }
-    
-    /* Number input text visibility */
-    .stNumberInput > div > div > input {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Text input visibility */
-    .stTextInput > div > div > input {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Select box text visibility */
-    .stSelectbox > div > div {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Labels and headers */
-    .stNumberInput label, .stTextInput label, .stSelectbox label {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Alerts maintain their own colors but ensure text is visible */
-    .stAlert p, .stInfo p, .stWarning p, .stSuccess p, .stError p {
-        color: inherit !important;
-    }
-    
-    /* Expander header text */
-    .streamlit-expanderHeader {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Sidebar text */
-    [data-testid="stSidebar"] * {
-        color: var(--text-primary, inherit);
-    }
-    
-    /* Caption text slightly muted */
-    .stCaption, [data-testid="stCaption"] {
-        color: var(--text-secondary, #555) !important;
-    }
+    /* Button inner element fixes */
+    [data-testid="stSidebar"] [data-testid="column"] .stButton > button > div, [data-testid="stSidebar"] [data-testid="column"] .stButton > button > div > p, [data-testid="stSidebar"] [data-testid="column"] .stButton > button p { max-width: none !important; width: auto !important; margin: 0 !important; padding: 0 !important; text-align: center !important; display: flex !important; align-items: center !important; justify-content: center !important; flex: none !important; }
+    .stButton [data-testid="stMarkdownContainer"], [data-testid="stSidebar"] .stButton [data-testid="stMarkdownContainer"] { width: auto !important; max-width: none !important; min-width: 0 !important; display: flex !important; justify-content: center !important; align-items: center !important; }
+    .stButton [data-testid="stMarkdownContainer"] p, [data-testid="stSidebar"] .stButton [data-testid="stMarkdownContainer"] p { width: auto !important; max-width: none !important; margin: 0 !important; text-align: center !important; }
+    [data-testid="stSidebar"] [data-testid="column"] .stButton button div[class*="emotion-cache"] { width: auto !important; max-width: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
