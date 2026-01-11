@@ -1927,6 +1927,7 @@ with st.sidebar:
                 st.session_state.game_finished = False  # Reset game finished flag
                 st.session_state.shot_players = []  # Clear shot players
                 st.session_state.round_roasts = {}  # Clear roasts
+                st.session_state.active_tab = 0  # Start on Bids tab
                 # Initialize game data for round 1
                 st.session_state.game_data[1] = {
                     player: {'bid': None, 'tricks': None} 
@@ -2348,7 +2349,7 @@ else:
         for i, player in enumerate(st.session_state.players):
             with cols[i]:
                 player_color = st.session_state.player_colors.get(player, "#808080")
-                st.markdown(f"<b style='color:{player_color};'>{player}</b>", unsafe_allow_html=True)
+                st.markdown(f"<b>{player}</b> <span style='color:{player_color}; font-size:0.9em;'>●</span>", unsafe_allow_html=True)
                 current_bid = st.session_state.game_data[current_round][player]['bid']
                 bid = st.number_input(
                     f"Bid for {player}",
@@ -2423,7 +2424,7 @@ else:
                 # Show player's bid next to their name
                 player_bid = st.session_state.game_data[current_round][player]['bid'] or 0
                 player_color = st.session_state.player_colors.get(player, "#808080")
-                st.markdown(f"**{player}** <span style='color:{player_color}; font-size:0.9em;'>(Bid: {player_bid})</span>", 
+                st.markdown(f"<b>{player}</b> <span style='color:{player_color}; font-size:0.9em;'>(Bid: {player_bid})</span>", 
                            unsafe_allow_html=True)
                 
                 current_tricks = st.session_state.game_data[current_round][player]['tricks']
