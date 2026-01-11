@@ -125,19 +125,30 @@ if st.session_state.dark_mode:
         
         /* Toggle switch - make visible in dark mode */
         [data-testid="stSidebar"] .stCheckbox > label[data-baseweb="checkbox"] > span:first-child,
-        .stToggle > label > div {
+        .stToggle > label > div,
+        [data-testid="stWidgetLabel"] + div [role="checkbox"],
+        [data-baseweb="checkbox"] > div:first-child {
             background-color: #444 !important;
             border: 2px solid #666 !important;
         }
         
         .stToggle > label > div[data-checked="true"],
-        [data-testid="stSidebar"] [data-baseweb="checkbox"] [data-checked="true"] {
+        [data-testid="stSidebar"] [data-baseweb="checkbox"] [data-checked="true"],
+        [data-baseweb="checkbox"] > div:first-child[aria-checked="true"],
+        [role="checkbox"][aria-checked="true"] {
             background-color: #ff4b4b !important;
             border-color: #ff4b4b !important;
         }
         
+        /* Toggle thumb/knob */
+        [data-baseweb="checkbox"] > div:first-child > div,
+        .stToggle > label > div > div {
+            background-color: #fafafa !important;
+        }
+        
         /* Toggle label text */
-        .stToggle label span {
+        .stToggle label span,
+        [data-testid="stWidgetLabel"] {
             color: #fafafa !important;
             font-size: 1.2rem !important;
         }
@@ -241,19 +252,30 @@ else:
         
         /* Toggle switch - make visible in light mode */
         [data-testid="stSidebar"] .stCheckbox > label[data-baseweb="checkbox"] > span:first-child,
-        .stToggle > label > div {
+        .stToggle > label > div,
+        [data-testid="stWidgetLabel"] + div [role="checkbox"],
+        [data-baseweb="checkbox"] > div:first-child {
             background-color: #ccc !important;
             border: 2px solid #999 !important;
         }
         
         .stToggle > label > div[data-checked="true"],
-        [data-testid="stSidebar"] [data-baseweb="checkbox"] [data-checked="true"] {
+        [data-testid="stSidebar"] [data-baseweb="checkbox"] [data-checked="true"],
+        [data-baseweb="checkbox"] > div:first-child[aria-checked="true"],
+        [role="checkbox"][aria-checked="true"] {
             background-color: #ff4b4b !important;
             border-color: #ff4b4b !important;
         }
         
+        /* Toggle thumb/knob */
+        [data-baseweb="checkbox"] > div:first-child > div,
+        .stToggle > label > div > div {
+            background-color: #ffffff !important;
+        }
+        
         /* Toggle label text */
-        .stToggle label span {
+        .stToggle label span,
+        [data-testid="stWidgetLabel"] {
             color: #262730 !important;
             font-size: 1.2rem !important;
         }
