@@ -152,6 +152,121 @@ if st.session_state.dark_mode:
             color: #fafafa !important;
             font-size: 1.2rem !important;
         }
+        
+        /* ===== NUMBER INPUT - Plus/Minus buttons ===== */
+        .stNumberInput button,
+        .stNumberInput [data-testid="stNumberInputStepUp"],
+        .stNumberInput [data-testid="stNumberInputStepDown"] {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+            border-color: #444 !important;
+        }
+        
+        .stNumberInput button:hover {
+            background-color: #3d3d4d !important;
+        }
+        
+        .stNumberInput button svg,
+        .stNumberInput [data-testid="stNumberInputStepUp"] svg,
+        .stNumberInput [data-testid="stNumberInputStepDown"] svg {
+            fill: #fafafa !important;
+            stroke: #fafafa !important;
+        }
+        
+        .stNumberInput > div > div > input {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+        }
+        
+        /* ===== RADIO BUTTONS - Tab style ===== */
+        .stRadio [role="radiogroup"],
+        .stRadio > div {
+            background-color: transparent !important;
+        }
+        
+        .stRadio [role="radio"],
+        .stRadio > div > label,
+        .stRadio > div > div > label {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+            border-color: #444 !important;
+        }
+        
+        .stRadio [role="radio"]:hover,
+        .stRadio > div > label:hover {
+            background-color: #3d3d4d !important;
+        }
+        
+        .stRadio [role="radio"][aria-checked="true"],
+        .stRadio > div > label[data-checked="true"],
+        .stRadio > div > label:has(input:checked) {
+            background-color: #ff4b4b !important;
+            color: #ffffff !important;
+        }
+        
+        /* ===== TABS ===== */
+        .stTabs [data-baseweb="tab-list"] {
+            background-color: #262730 !important;
+        }
+        
+        .stTabs [data-baseweb="tab"] {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+        }
+        
+        .stTabs [data-baseweb="tab"]:hover {
+            background-color: #3d3d4d !important;
+        }
+        
+        .stTabs [aria-selected="true"] {
+            background-color: #0e1117 !important;
+            color: #fafafa !important;
+        }
+        
+        /* ===== MAIN CONTENT CONTAINERS ===== */
+        [data-testid="stVerticalBlock"],
+        [data-testid="stHorizontalBlock"],
+        .element-container,
+        .stMarkdown,
+        [data-testid="column"] {
+            background-color: transparent !important;
+        }
+        
+        /* ===== METRIC / SCORE DISPLAYS ===== */
+        [data-testid="stMetric"],
+        [data-testid="stMetricValue"],
+        [data-testid="stMetricLabel"],
+        [data-testid="stMetricDelta"] {
+            background-color: transparent !important;
+            color: #fafafa !important;
+        }
+        
+        /* ===== CHARTS / PLOTLY ===== */
+        .stPlotlyChart,
+        .js-plotly-plot,
+        .plotly,
+        .plot-container {
+            background-color: #0e1117 !important;
+        }
+        
+        .js-plotly-plot .plotly .bg {
+            fill: #0e1117 !important;
+        }
+        
+        /* ===== TABLES ===== */
+        table, tr, td, th,
+        .stTable, .stTable td, .stTable th {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+            border-color: #444 !important;
+        }
+        
+        /* ===== CARDS / CONTAINERS ===== */
+        .stContainer,
+        [data-testid="stExpander"],
+        [data-testid="stForm"] {
+            background-color: #0e1117 !important;
+        }
     </style>
     """
 else:
@@ -278,6 +393,121 @@ else:
         [data-testid="stWidgetLabel"] {
             color: #262730 !important;
             font-size: 1.2rem !important;
+        }
+        
+        /* ===== NUMBER INPUT - Plus/Minus buttons ===== */
+        .stNumberInput button,
+        .stNumberInput [data-testid="stNumberInputStepUp"],
+        .stNumberInput [data-testid="stNumberInputStepDown"] {
+            background-color: #f0f2f6 !important;
+            color: #262730 !important;
+            border-color: #ddd !important;
+        }
+        
+        .stNumberInput button:hover {
+            background-color: #e0e2e6 !important;
+        }
+        
+        .stNumberInput button svg,
+        .stNumberInput [data-testid="stNumberInputStepUp"] svg,
+        .stNumberInput [data-testid="stNumberInputStepDown"] svg {
+            fill: #262730 !important;
+            stroke: #262730 !important;
+        }
+        
+        .stNumberInput > div > div > input {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+        }
+        
+        /* ===== RADIO BUTTONS - Tab style ===== */
+        .stRadio [role="radiogroup"],
+        .stRadio > div {
+            background-color: transparent !important;
+        }
+        
+        .stRadio [role="radio"],
+        .stRadio > div > label,
+        .stRadio > div > div > label {
+            background-color: #f0f2f6 !important;
+            color: #262730 !important;
+            border-color: #ddd !important;
+        }
+        
+        .stRadio [role="radio"]:hover,
+        .stRadio > div > label:hover {
+            background-color: #e0e2e6 !important;
+        }
+        
+        .stRadio [role="radio"][aria-checked="true"],
+        .stRadio > div > label[data-checked="true"],
+        .stRadio > div > label:has(input:checked) {
+            background-color: #ff4b4b !important;
+            color: #ffffff !important;
+        }
+        
+        /* ===== TABS ===== */
+        .stTabs [data-baseweb="tab-list"] {
+            background-color: #f0f2f6 !important;
+        }
+        
+        .stTabs [data-baseweb="tab"] {
+            background-color: #f0f2f6 !important;
+            color: #262730 !important;
+        }
+        
+        .stTabs [data-baseweb="tab"]:hover {
+            background-color: #e0e2e6 !important;
+        }
+        
+        .stTabs [aria-selected="true"] {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+        }
+        
+        /* ===== MAIN CONTENT CONTAINERS ===== */
+        [data-testid="stVerticalBlock"],
+        [data-testid="stHorizontalBlock"],
+        .element-container,
+        .stMarkdown,
+        [data-testid="column"] {
+            background-color: transparent !important;
+        }
+        
+        /* ===== METRIC / SCORE DISPLAYS ===== */
+        [data-testid="stMetric"],
+        [data-testid="stMetricValue"],
+        [data-testid="stMetricLabel"],
+        [data-testid="stMetricDelta"] {
+            background-color: transparent !important;
+            color: #262730 !important;
+        }
+        
+        /* ===== CHARTS / PLOTLY ===== */
+        .stPlotlyChart,
+        .js-plotly-plot,
+        .plotly,
+        .plot-container {
+            background-color: #ffffff !important;
+        }
+        
+        .js-plotly-plot .plotly .bg {
+            fill: #ffffff !important;
+        }
+        
+        /* ===== TABLES ===== */
+        table, tr, td, th,
+        .stTable, .stTable td, .stTable th {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+            border-color: #ddd !important;
+        }
+        
+        /* ===== CARDS / CONTAINERS ===== */
+        .stContainer,
+        [data-testid="stExpander"],
+        [data-testid="stForm"] {
+            background-color: #ffffff !important;
         }
     </style>
     """
