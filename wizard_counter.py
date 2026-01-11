@@ -363,7 +363,31 @@ else:
         .stSelectbox select, [data-baseweb="input"] input {
             background-color: #ffffff !important;
             color: #262730 !important;
-            border-color: #ddd !important;
+            border: 1px solid #888 !important;
+            border-radius: 4px !important;
+        }
+        
+        /* Sidebar input fields - ensure high visibility */
+        [data-testid="stSidebar"] .stTextInput > div > div,
+        [data-testid="stSidebar"] [data-baseweb="base-input"],
+        [data-testid="stSidebar"] [data-baseweb="input"] {
+            background-color: #ffffff !important;
+            border: 1px solid #555 !important;
+            border-radius: 4px !important;
+        }
+        
+        [data-testid="stSidebar"] input,
+        [data-testid="stSidebar"] .stTextInput input,
+        [data-testid="stSidebar"] [data-baseweb="input"] input {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            -webkit-text-fill-color: #000000 !important;
+            border: none !important;
+        }
+        
+        [data-testid="stSidebar"] .stTextInput label,
+        [data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
+            color: #262730 !important;
         }
         
         /* Selectbox - ensure visibility in light mode */
@@ -441,6 +465,22 @@ else:
         .stButton > button[kind="primary"] *,
         .stButton > button[data-testid="baseButton-primary"] * {
             color: #ffffff !important;
+        }
+        
+        /* Disabled buttons - ensure visible in light mode */
+        .stButton > button:disabled,
+        .stButton > button[disabled] {
+            background-color: #e0e0e0 !important;
+            color: #888888 !important;
+            border: 1px solid #bbb !important;
+            opacity: 0.7 !important;
+            cursor: not-allowed !important;
+        }
+        
+        .stButton > button:disabled *,
+        .stButton > button[disabled] * {
+            color: #888888 !important;
+            -webkit-text-fill-color: #888888 !important;
         }
         
         /* Radio buttons / tabs */
@@ -2397,7 +2437,7 @@ else:
         for i, player in enumerate(st.session_state.players):
             with cols[i]:
                 player_color = st.session_state.player_colors.get(player, "#808080")
-                st.markdown(f"<b>{player}</b> <span style='color:{player_color}; font-size:0.9em;'>●</span>", unsafe_allow_html=True)
+                st.markdown(f"<b>{player}</b>", unsafe_allow_html=True)
                 current_bid = st.session_state.game_data[current_round][player]['bid']
                 bid = st.number_input(
                     f"Bid for {player}",
@@ -2452,20 +2492,22 @@ else:
                     st.session_state.current_round -= 1
                     st.rerun()
         with nav_col2:
-            # Check if any bids have been entered (at least one non-None bid)
-            any_bids_entered = any(
-                st.session_state.game_data[current_round][p]['bid'] is not None 
+            # Check if any bids have been entered (at least one bid > 0, or it's round 1 where all 0s could be valid)
+            any_nonzero_bid = any(
+                (st.session_state.game_data[current_round][p]['bid'] or 0) > 0
                 for p in st.session_state.players
             )
+            # For round 1, allow all zeros as valid bids; for other rounds require at least one non-zero
+            bids_entered = any_nonzero_bid or current_round == 1
             # Only allow going to tricks if total bids != current round (valid bid state) AND bids entered
-            bids_valid = total_bids != current_round and any_bids_entered
+            bids_valid = total_bids != current_round and bids_entered
             if bids_valid:
                 if st.button("Go to Tricks 🃏 ➡️", type="primary", key="go_to_tricks"):
                     st.session_state.pending_tab = 1
                     st.rerun()
             else:
                 st.button("Go to Tricks 🃏 ➡️", type="primary", disabled=True, key="go_to_tricks_disabled")
-                if not any_bids_entered:
+                if not bids_entered:
                     st.caption("⚠️ Enter bids first")
                 else:
                     st.caption("⚠️ Total bids cannot equal tricks available")
