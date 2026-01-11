@@ -253,12 +253,40 @@ if st.session_state.dark_mode:
             fill: #0e1117 !important;
         }
         
-        /* ===== TABLES ===== */
+        /* ===== TABLES / DATAFRAMES ===== */
         table, tr, td, th,
         .stTable, .stTable td, .stTable th {
             background-color: #262730 !important;
             color: #fafafa !important;
             border-color: #444 !important;
+        }
+        
+        /* Streamlit Dataframe specific */
+        .stDataFrame,
+        [data-testid="stDataFrame"],
+        [data-testid="stDataFrame"] > div,
+        [data-testid="stDataFrame"] iframe {
+            background-color: #262730 !important;
+        }
+        
+        /* Glide Data Grid (used by st.dataframe) */
+        .dvn-scroller,
+        .gdg-style,
+        [class*="glideDataEditor"] {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+        }
+        
+        /* Altair / Vega charts */
+        .vega-embed,
+        .vega-embed .chart-wrapper,
+        [data-testid="stVegaLiteChart"],
+        [data-testid="stVegaLiteChart"] > div {
+            background-color: #0e1117 !important;
+        }
+        
+        .vega-embed .vega-bindings {
+            color: #fafafa !important;
         }
         
         /* ===== CARDS / CONTAINERS ===== */
@@ -495,12 +523,40 @@ else:
             fill: #ffffff !important;
         }
         
-        /* ===== TABLES ===== */
+        /* ===== TABLES / DATAFRAMES ===== */
         table, tr, td, th,
         .stTable, .stTable td, .stTable th {
             background-color: #ffffff !important;
             color: #262730 !important;
             border-color: #ddd !important;
+        }
+        
+        /* Streamlit Dataframe specific */
+        .stDataFrame,
+        [data-testid="stDataFrame"],
+        [data-testid="stDataFrame"] > div,
+        [data-testid="stDataFrame"] iframe {
+            background-color: #ffffff !important;
+        }
+        
+        /* Glide Data Grid (used by st.dataframe) */
+        .dvn-scroller,
+        .gdg-style,
+        [class*="glideDataEditor"] {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+        }
+        
+        /* Altair / Vega charts */
+        .vega-embed,
+        .vega-embed .chart-wrapper,
+        [data-testid="stVegaLiteChart"],
+        [data-testid="stVegaLiteChart"] > div {
+            background-color: #ffffff !important;
+        }
+        
+        .vega-embed .vega-bindings {
+            color: #262730 !important;
         }
         
         /* ===== CARDS / CONTAINERS ===== */
@@ -2528,14 +2584,27 @@ else:
                        for i, p in enumerate(st.session_state.players)]
             )
             
-            # Create Altair chart with custom colors
+            # Theme-aware chart colors
+            if st.session_state.dark_mode:
+                chart_bg = "#0e1117"
+                grid_color = "#444"
+                label_color = "#fafafa"
+            else:
+                chart_bg = "#ffffff"
+                grid_color = "#ddd"
+                label_color = "#262730"
+            
+            # Create Altair chart with custom colors and theme
             chart = alt.Chart(chart_melted).mark_line(point=True, strokeWidth=3).encode(
-                x=alt.X("Round:Q", title="Round", axis=alt.Axis(tickMinStep=1)),
-                y=alt.Y("Score:Q", title="Total Score"),
-                color=alt.Color("Player:N", scale=color_scale, legend=alt.Legend(title="Players")),
+                x=alt.X("Round:Q", title="Round", axis=alt.Axis(tickMinStep=1, labelColor=label_color, titleColor=label_color, gridColor=grid_color)),
+                y=alt.Y("Score:Q", title="Total Score", axis=alt.Axis(labelColor=label_color, titleColor=label_color, gridColor=grid_color)),
+                color=alt.Color("Player:N", scale=color_scale, legend=alt.Legend(title="Players", labelColor=label_color, titleColor=label_color)),
                 tooltip=["Round", "Player", "Score"]
             ).properties(
-                height=400
+                height=400,
+                background=chart_bg
+            ).configure_view(
+                strokeWidth=0
             ).interactive()
             
             st.altair_chart(chart, use_container_width=True)
