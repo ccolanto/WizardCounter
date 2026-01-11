@@ -1068,14 +1068,62 @@ def reset_game():
     st.session_state.game_summary = None
     st.session_state.game_stats = None
 
-# Title and header
-st.title("🎩 The Grand Fardini")
-st.markdown("---")
+def replay_game_with_same_players():
+    """Start a new game with the same players."""
+    # Keep players and colors
+    players = st.session_state.players.copy()
+    colors = st.session_state.player_colors.copy()
+    starting_dealer = st.session_state.starting_dealer_index
+    
+    # Reset game state but preserve players
+    st.session_state.current_round = 1
+    st.session_state.game_data = {}
+    st.session_state.game_started = True
+    st.session_state.max_rounds = 60 // len(players)
+    st.session_state.current_save_file = None
+    st.session_state.game_finished = False
+    st.session_state.shot_players = []
+    st.session_state.round_roasts = {}
+    st.session_state.manual_roast = {}
+    st.session_state.game_summary = None
+    st.session_state.game_stats = None
+    st.session_state.active_tab = 0
+    
+    # Restore players
+    st.session_state.players = players
+    st.session_state.player_colors = colors
+    st.session_state.starting_dealer_index = starting_dealer
+    
+    # Initialize game data for round 1
+    st.session_state.game_data[1] = {
+        player: {'bid': None, 'tricks': None} 
+        for player in st.session_state.players
+    }
+
+def rename_player(old_name, new_name):
+    """Rename a player and update all references."""
+    if old_name == new_name or new_name in st.session_state.players:
+        return False
+    
+    # Update players list
+    idx = st.session_state.players.index(old_name)
+    st.session_state.players[idx] = new_name
+    
+    # Update player colors
+    if old_name in st.session_state.player_colors:
+        st.session_state.player_colors[new_name] = st.session_state.player_colors.pop(old_name)
+    
+    # Update game data
+    for round_num in st.session_state.game_data:
+        if old_name in st.session_state.game_data[round_num]:
+            st.session_state.game_data[round_num][new_name] = st.session_state.game_data[round_num].pop(old_name)
+    
+    return True
 
 # Sidebar for game setup
 with st.sidebar:
-    st.header("⚙️ Game Setup")
-    st.caption("Version 0.3")
+    st.title("🎩 The Grand Fardini")
+    st.caption("Version 0.4")
     
     if not st.session_state.game_started:
         st.subheader("Add Players")
@@ -1100,9 +1148,15 @@ with st.sidebar:
                 
                 col1, col2, col3, col4, col5 = st.columns([2.5, 0.8, 0.8, 0.8, 0.8])
                 
-                # Player name with vertical centering using markdown
+                # Editable player name
                 with col1:
-                    st.markdown(f"<div class='player-name-cell'>{i+1}. {player}</div>", unsafe_allow_html=True)
+                    new_name = st.text_input(f"Name {i+1}", value=player, key=f"edit_name_{i}", label_visibility="collapsed")
+                    if new_name and new_name != player:
+                        if new_name not in st.session_state.players:
+                            rename_player(player, new_name)
+                            st.rerun()
+                        else:
+                            st.toast("Player name already exists!")
                 
                 # Color picker
                 with col2:
@@ -1172,8 +1226,25 @@ with st.sidebar:
     
     else:
         st.success(f"Game in progress!")
-        st.write(f"**Players:** {len(st.session_state.players)}")
         st.write(f"**Current Round:** {st.session_state.current_round} / {st.session_state.max_rounds}")
+        
+        # Player management during game
+        st.markdown("---")
+        with st.expander("👥 Edit Players & Colors", expanded=False):
+            for i, player in enumerate(st.session_state.players):
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    new_name = st.text_input(f"Player {i+1}", value=player, key=f"game_edit_name_{i}", label_visibility="collapsed")
+                    if new_name and new_name != player:
+                        if new_name not in st.session_state.players:
+                            rename_player(player, new_name)
+                            st.rerun()
+                        else:
+                            st.toast("Player name already exists!")
+                with col2:
+                    new_color = st.color_picker("", st.session_state.player_colors.get(player, "#808080"), key=f"game_color_{i}", label_visibility="collapsed")
+                    if new_color != st.session_state.player_colors.get(player):
+                        st.session_state.player_colors[player] = new_color
         
         st.markdown("---")
         st.subheader("💾 Save Game")
@@ -1556,11 +1627,18 @@ else:
             st.markdown(f"🚫 <b><span style='color:{dealer_color};'>{current_dealer}</span> (dealer) can't say {cant_say}</b>", 
                        unsafe_allow_html=True)
         
-        # Button to go to Tricks tab
+        # Navigation buttons
         st.markdown("---")
-        if st.button("Go to Tricks 🃏 ➡️", type="primary"):
-            st.session_state.pending_tab = 1
-            st.rerun()
+        nav_col1, nav_col2 = st.columns([1, 1])
+        with nav_col1:
+            if st.session_state.current_round > 1:
+                if st.button("⬅️ Previous Round"):
+                    st.session_state.current_round -= 1
+                    st.rerun()
+        with nav_col2:
+            if st.button("Go to Tricks 🃏 ➡️", type="primary"):
+                st.session_state.pending_tab = 1
+                st.rerun()
     
     elif st.session_state.active_tab == 1:  # Tricks tab
         st.subheader("Enter Tricks Won")
@@ -2006,6 +2084,19 @@ else:
                     if st.button("🔄 Regenerate Summary"):
                         st.session_state.game_summary = None
                         st.rerun()
+            
+            # Play Again button
+            st.markdown("---")
+            st.subheader("🔁 Play Again?")
+            play_again_col1, play_again_col2 = st.columns(2)
+            with play_again_col1:
+                if st.button("🔄 New Game (Same Players)", type="primary", use_container_width=True):
+                    replay_game_with_same_players()
+                    st.rerun()
+            with play_again_col2:
+                if st.button("🆕 New Game (New Players)", use_container_width=True):
+                    reset_game()
+                    st.rerun()
 
 # Footer
 st.markdown("---")
