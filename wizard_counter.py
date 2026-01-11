@@ -2281,13 +2281,14 @@ else:
         st.session_state.active_tab = st.session_state.pending_tab
         del st.session_state.pending_tab
     
-    # Use a unique key based on current active_tab to force widget recreation
+    # Use a unique key that includes the active_tab to force widget recreation when tab changes
     selected = st.radio(
         "Navigate", 
         tab_options, 
         index=st.session_state.active_tab, 
         horizontal=True, 
-        label_visibility="collapsed"
+        label_visibility="collapsed",
+        key=f"tab_nav_{st.session_state.active_tab}"
     )
     
     # Update active_tab based on selection
@@ -2334,6 +2335,12 @@ else:
         current_dealer = st.session_state.players[current_dealer_index]
         dealer_color = st.session_state.player_colors.get(current_dealer, "#808080")
         
+        # Check if all bids are entered (not None)
+        all_bids_entered = all(
+            st.session_state.game_data[current_round][p]['bid'] is not None 
+            for p in st.session_state.players
+        )
+        
         if total_bids == current_round:
             st.warning(f"⚠️ Total bids ({total_bids}) = tricks available ({current_round}). Someone must be wrong!")
         else:
@@ -2343,19 +2350,29 @@ else:
         if 0 <= cant_say <= current_round:
             st.markdown(f"🚫 <b><span style='color:{dealer_color};'>{current_dealer}</span> (dealer) can't say {cant_say}</b>", 
                        unsafe_allow_html=True)
+        else:
+            # cant_say is below zero or above current_round, dealer can say anything
+            st.markdown(f"✅ <b><span style='color:{dealer_color};'>{current_dealer}</span> (dealer) can say anything</b>", 
+                       unsafe_allow_html=True)
         
         # Navigation buttons
         st.markdown("---")
         nav_col1, nav_col2 = st.columns([1, 1])
         with nav_col1:
             if st.session_state.current_round > 1:
-                if st.button("⬅️ Previous Round"):
+                if st.button("⬅️ Previous Round", key="prev_round_bids"):
                     st.session_state.current_round -= 1
                     st.rerun()
         with nav_col2:
-            if st.button("Go to Tricks 🃏 ➡️", type="primary"):
-                st.session_state.pending_tab = 1
-                st.rerun()
+            # Only allow going to tricks if total bids != current round (valid bid state)
+            bids_valid = total_bids != current_round
+            if bids_valid:
+                if st.button("Go to Tricks 🃏 ➡️", type="primary", key="go_to_tricks"):
+                    st.session_state.pending_tab = 1
+                    st.rerun()
+            else:
+                st.button("Go to Tricks 🃏 ➡️", type="primary", disabled=True, key="go_to_tricks_disabled")
+                st.caption("⚠️ Total bids cannot equal tricks available")
     
     elif st.session_state.active_tab == 1:  # Tricks tab
         st.subheader("Enter Tricks Won")
@@ -2399,48 +2416,54 @@ else:
         
         with col1:
             if st.session_state.current_round > 1:
-                if st.button("⬅️ Previous Round"):
+                if st.button("⬅️ Previous Round", key="prev_round_tricks"):
                     st.session_state.current_round -= 1
                     st.rerun()
         
         with col3:
             if st.session_state.current_round < st.session_state.max_rounds:
-                if st.button("Next Round ➡️", type="primary"):
-                    # Check for players who need to take a shot (off by 2+ tricks)
-                    shot_players = []
-                    current_round = st.session_state.current_round
-                    for player in st.session_state.players:
-                        bid = st.session_state.game_data[current_round][player]['bid'] or 0
-                        tricks = st.session_state.game_data[current_round][player]['tricks'] or 0
-                        if abs(bid - tricks) >= 2:
-                            shot_players.append(player)
-                    
-                    st.session_state.shot_players = shot_players
-                    
-                    # Generate roast for this round before moving on
-                    if st.session_state.enable_roasts and st.session_state.nvidia_api_key and st.session_state.api_verified:
-                        with st.spinner("🔥 Generating roasts... (this may take up to 90 seconds)"):
-                            roast = generate_roasts(current_round)
-                            st.session_state.round_roasts[current_round] = roast if roast else "[No roast generated - API may have failed]"
-                    elif st.session_state.enable_roasts and not st.session_state.api_verified:
-                        st.session_state.round_roasts[current_round] = "[API not verified - please verify your API key]"
-                    
-                    st.session_state.current_round += 1
-                    st.session_state.pending_tab = 0  # Switch to Bids tab on rerun
-                    # Initialize next round if needed
-                    if st.session_state.current_round not in st.session_state.game_data:
-                        st.session_state.game_data[st.session_state.current_round] = {
-                            player: {'bid': None, 'tricks': None} 
-                            for player in st.session_state.players
-                        }
-                    
-                    # Auto-save game after each round
-                    if st.session_state.current_save_file:
-                        save_game(filename=st.session_state.current_save_file)
-                    else:
-                        save_game()
-                    
-                    st.rerun()
+                # Only allow next round if all tricks are accounted for
+                tricks_valid = total_tricks == current_round
+                if tricks_valid:
+                    if st.button("Next Round ➡️", type="primary", key="next_round_btn"):
+                        # Check for players who need to take a shot (off by 2+ tricks)
+                        shot_players = []
+                        current_round_num = st.session_state.current_round
+                        for player in st.session_state.players:
+                            bid = st.session_state.game_data[current_round_num][player]['bid'] or 0
+                            tricks = st.session_state.game_data[current_round_num][player]['tricks'] or 0
+                            if abs(bid - tricks) >= 2:
+                                shot_players.append(player)
+                        
+                        st.session_state.shot_players = shot_players
+                        
+                        # Generate roast for this round before moving on
+                        if st.session_state.enable_roasts and st.session_state.nvidia_api_key and st.session_state.api_verified:
+                            with st.spinner("🔥 Generating roasts... (this may take up to 90 seconds)"):
+                                roast = generate_roasts(current_round_num)
+                                st.session_state.round_roasts[current_round_num] = roast if roast else "[No roast generated - API may have failed]"
+                        elif st.session_state.enable_roasts and not st.session_state.api_verified:
+                            st.session_state.round_roasts[current_round_num] = "[API not verified - please verify your API key]"
+                        
+                        st.session_state.current_round += 1
+                        st.session_state.pending_tab = 0  # Switch to Bids tab on rerun
+                        # Initialize next round if needed
+                        if st.session_state.current_round not in st.session_state.game_data:
+                            st.session_state.game_data[st.session_state.current_round] = {
+                                player: {'bid': None, 'tricks': None} 
+                                for player in st.session_state.players
+                            }
+                        
+                        # Auto-save game after each round
+                        if st.session_state.current_save_file:
+                            save_game(filename=st.session_state.current_save_file)
+                        else:
+                            save_game()
+                        
+                        st.rerun()
+                else:
+                    st.button("Next Round ➡️", type="primary", disabled=True, key="next_round_btn_disabled")
+                    st.caption(f"⚠️ Tricks must equal {current_round}")
             else:
                 # Final round - add Finish Game button
                 all_tricks_entered = all(
