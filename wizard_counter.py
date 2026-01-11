@@ -272,8 +272,17 @@ if st.session_state.dark_mode:
         /* Glide Data Grid (used by st.dataframe) */
         .dvn-scroller,
         .gdg-style,
-        [class*="glideDataEditor"] {
+        [class*="glideDataEditor"],
+        [data-testid="stDataFrame"] [class*="cell"],
+        [data-testid="stDataFrame"] [role="gridcell"],
+        [data-testid="stDataFrame"] [role="columnheader"] {
             background-color: #262730 !important;
+            color: #fafafa !important;
+        }
+        
+        /* Ensure dataframe text is visible */
+        [data-testid="stDataFrame"] span,
+        [data-testid="stDataFrame"] div {
             color: #fafafa !important;
         }
         
@@ -542,8 +551,17 @@ else:
         /* Glide Data Grid (used by st.dataframe) */
         .dvn-scroller,
         .gdg-style,
-        [class*="glideDataEditor"] {
+        [class*="glideDataEditor"],
+        [data-testid="stDataFrame"] [class*="cell"],
+        [data-testid="stDataFrame"] [role="gridcell"],
+        [data-testid="stDataFrame"] [role="columnheader"] {
             background-color: #ffffff !important;
+            color: #262730 !important;
+        }
+        
+        /* Ensure dataframe text is visible */
+        [data-testid="stDataFrame"] span,
+        [data-testid="stDataFrame"] div {
             color: #262730 !important;
         }
         
@@ -2539,7 +2557,10 @@ else:
         
         if scoreboard_data:
             df = pd.DataFrame(scoreboard_data)
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            # Use st.table for better theme compatibility (renders as HTML table)
+            st.table(df)
+        else:
+            st.info("Complete at least one round to see the scoreboard.")
         
         # Score progression chart
         st.markdown("---")
