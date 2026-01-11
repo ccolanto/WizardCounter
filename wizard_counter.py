@@ -2257,13 +2257,20 @@ else:
             
             # Display individual roasts in columns
             roast_cols = st.columns(len(st.session_state.players))
+            # Theme-aware roast card colors
+            if st.session_state.dark_mode:
+                roast_card_bg = "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)"
+                roast_card_text = "#FFFFFF"
+            else:
+                roast_card_bg = "linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)"
+                roast_card_text = "#262730"
             for i, player in enumerate(st.session_state.players):
                 player_color = st.session_state.player_colors.get(player, "#FF6B6B")
                 roast_text = st.session_state.manual_roast.get(player, "No roast available")
                 with roast_cols[i]:
                     st.markdown(
                         f"""
-                        <div style='background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); 
+                        <div style='background: {roast_card_bg}; 
                                     padding: 15px; border-radius: 15px; 
                                     border: 3px solid {player_color}; 
                                     margin: 5px 0; 
@@ -2272,7 +2279,7 @@ else:
                             <h3 style='color: {player_color}; text-align: center; margin: 0 0 10px 0;'>
                                 🔥 {player} 🔥
                             </h3>
-                            <p style='color: #FFFFFF; text-align: center; font-size: 1.1em; font-style: italic; 
+                            <p style='color: {roast_card_text}; text-align: center; font-size: 1.1em; font-style: italic; 
                                       margin: 0; line-height: 1.4;'>
                                 "{roast_text}"
                             </p>
@@ -2536,16 +2543,26 @@ else:
     
     # Show shot popup if there are players who need to take a shot
     if st.session_state.shot_players:
+        # Theme-aware colors for banners
+        if st.session_state.dark_mode:
+            banner_bg = "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
+            roast_bg = "linear-gradient(135deg, #2d1b69 0%, #11998e 100%)"
+            banner_text = "#FFFFFF"
+        else:
+            banner_bg = "linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%)"
+            roast_bg = "linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)"
+            banner_text = "#262730"
+        
         # Show roast first if available
         prev_round = st.session_state.current_round - 1
         if prev_round in st.session_state.round_roasts:
             roast_text = st.session_state.round_roasts[prev_round]
             st.markdown(
-                f"""<div style='background: linear-gradient(135deg, #2d1b69 0%, #11998e 100%); 
+                f"""<div style='background: {roast_bg}; 
                              padding: 20px; border-radius: 15px; border: 2px solid #f39c12; 
                              margin: 10px 0; box-shadow: 0 0 15px #f39c12;'>
                     <h3 style='color: #f39c12; text-align: center; margin-bottom: 10px;'>🔥 Round {prev_round} Roast 🔥</h3>
-                    <p style='color: #FFFFFF; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
+                    <p style='color: {banner_text}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
                     </div>""",
                 unsafe_allow_html=True
             )
@@ -2556,7 +2573,7 @@ else:
             shot_html += f"<h2 style='color:{player_color}; text-align:center;'>🍺 {player.upper()} NEEDS TO TAKE A SHOT! 🍺</h2>"
         
         st.markdown(
-            f"""<div style='background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+            f"""<div style='background: {banner_bg}; 
                          padding: 30px; border-radius: 15px; border: 3px solid #e94560; 
                          margin: 20px 0; box-shadow: 0 0 20px #e94560;'>
                 {shot_html}
@@ -2576,13 +2593,20 @@ else:
     elif not st.session_state.shot_players:
         prev_round = st.session_state.current_round - 1
         if prev_round in st.session_state.round_roasts:
+            # Theme-aware colors
+            if st.session_state.dark_mode:
+                roast_bg = "linear-gradient(135deg, #2d1b69 0%, #11998e 100%)"
+                roast_text_color = "#FFFFFF"
+            else:
+                roast_bg = "linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)"
+                roast_text_color = "#262730"
             roast_text = st.session_state.round_roasts[prev_round]
             st.markdown(
-                f"""<div style='background: linear-gradient(135deg, #2d1b69 0%, #11998e 100%); 
+                f"""<div style='background: {roast_bg}; 
                              padding: 20px; border-radius: 15px; border: 2px solid #f39c12; 
                              margin: 10px 0; box-shadow: 0 0 15px #f39c12;'>
                     <h3 style='color: #f39c12; text-align: center; margin-bottom: 10px;'>🔥 Round {prev_round} Roast 🔥</h3>
-                    <p style='color: #FFFFFF; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
+                    <p style='color: {roast_text_color}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
                     </div>""",
                 unsafe_allow_html=True
             )
@@ -2778,36 +2802,39 @@ else:
             for i, (player, score) in enumerate(sorted_players):
                 player_color = st.session_state.player_colors.get(player, "#808080")
                 a = analysis[player]
+                # Theme-aware stat text color
+                stat_text = "#98D8C8" if st.session_state.dark_mode else "#495057"
+                score_text = "#FFFFFF" if st.session_state.dark_mode else "#262730"
                 with stat_cols[i]:
                     st.markdown(
                         f"""
-                        <div style='background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); 
+                        <div style='background: {card_bg}; 
                                     padding: 15px; border-radius: 15px; 
                                     border: 3px solid {player_color}; 
                                     margin: 5px 0;'>
                             <h3 style='color: {player_color}; text-align: center; margin: 0 0 10px 0;'>
                                 {medals[i]} {player}
                             </h3>
-                            <p style='color: #FFFFFF; text-align: center; font-size: 1.5em; margin: 5px 0;'>
+                            <p style='color: {score_text}; text-align: center; font-size: 1.5em; margin: 5px 0;'>
                                 {score} pts
                             </p>
                             <hr style='border-color: {player_color}40;'>
-                            <p style='color: #98D8C8; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
                                 🎯 Accuracy: <b>{a['accuracy']}%</b> ({a['correct_bids']}/{a['total_rounds']})
                             </p>
-                            <p style='color: #98D8C8; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
                                 🔥 Best Round: R{a['best_round']} (+{a['best_round_score']})
                             </p>
-                            <p style='color: #98D8C8; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
                                 💀 Worst Round: R{a['worst_round']} ({a['worst_round_score']})
                             </p>
-                            <p style='color: #98D8C8; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
                                 📈 Best 3-Round: +{a['max_3round_jump']}
                             </p>
-                            <p style='color: #98D8C8; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
                                 📉 Worst 3-Round: {a['max_3round_drop']}
                             </p>
-                            <p style='color: #98D8C8; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
                                 🏆 Led {a['times_in_lead']} rounds
                             </p>
                         </div>
@@ -2844,18 +2871,25 @@ else:
             
             # Filter out None awards and display
             awards = [a for a in awards if a is not None]
+            # Theme-aware award colors
+            if st.session_state.dark_mode:
+                award_bg = "linear-gradient(135deg, #2d1b69 0%, #11998e 100%)"
+                award_stat_text = "#FFFFFF"
+            else:
+                award_bg = "linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)"
+                award_stat_text = "#262730"
             for i, (title, player, stat) in enumerate(awards):
                 player_color = st.session_state.player_colors.get(player, "#FFD700")
                 with award_cols[i % 4]:
                     st.markdown(
                         f"""
-                        <div style='background: linear-gradient(135deg, #2d1b69 0%, #11998e 100%); 
+                        <div style='background: {award_bg}; 
                                     padding: 15px; border-radius: 10px; 
                                     border: 2px solid {player_color}; 
                                     margin: 5px 0; text-align: center;'>
                             <h4 style='color: #FFD700; margin: 0;'>{title}</h4>
                             <p style='color: {player_color}; font-size: 1.2em; margin: 5px 0; font-weight: bold;'>{player}</p>
-                            <p style='color: #FFFFFF; font-size: 0.9em; margin: 0;'>{stat}</p>
+                            <p style='color: {award_stat_text}; font-size: 0.9em; margin: 0;'>{stat}</p>
                         </div>
                         """,
                         unsafe_allow_html=True
