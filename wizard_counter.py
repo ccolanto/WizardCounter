@@ -1851,7 +1851,7 @@ else:
                     </div>""",
                 unsafe_allow_html=True
             )
-            if st.button("😂 Nice one! Continue", type="primary"):
+            if st.button("😂 Clear Roast", type="primary"):
                 del st.session_state.round_roasts[prev_round]
                 st.rerun()
 
