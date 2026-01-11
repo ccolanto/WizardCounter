@@ -1795,16 +1795,13 @@ def rename_player(old_name, new_name):
 # Sidebar for game setup
 with st.sidebar:
     st.title("🎩 The Grand Fardini")
+    st.caption("v0.5")
     
-    # Theme toggle and version in same row
-    theme_col, version_col = st.columns([1, 1])
-    with theme_col:
-        dark_mode = st.toggle("🌙", value=st.session_state.dark_mode, help="Dark Mode")
-        if dark_mode != st.session_state.dark_mode:
-            st.session_state.dark_mode = dark_mode
-            st.rerun()
-    with version_col:
-        st.caption("v0.4")
+    # Theme toggle
+    dark_mode = st.toggle("🌙", value=st.session_state.dark_mode, help="Dark Mode")
+    if dark_mode != st.session_state.dark_mode:
+        st.session_state.dark_mode = dark_mode
+        st.rerun()
     
     st.markdown("---")
     
