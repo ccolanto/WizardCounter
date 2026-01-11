@@ -204,6 +204,22 @@ if st.session_state.dark_mode:
             color: #ffffff !important;
         }
         
+        /* Radio button circles - style for dark mode */
+        .stRadio input[type="radio"] {
+            accent-color: #ff4b4b !important;
+        }
+        
+        .stRadio > div > label > div:first-child,
+        .stRadio [data-baseweb="radio"] > div:first-child {
+            background-color: #262730 !important;
+            border-color: #666 !important;
+        }
+        
+        .stRadio > div > label > div:first-child::after,
+        .stRadio input[type="radio"]:checked + div {
+            background-color: #ff4b4b !important;
+        }
+        
         /* ===== TABS ===== */
         .stTabs [data-baseweb="tab-list"] {
             background-color: #262730 !important;
@@ -481,6 +497,22 @@ else:
         .stRadio > div > label:has(input:checked) {
             background-color: #ff4b4b !important;
             color: #ffffff !important;
+        }
+        
+        /* Radio button circles - hide or style for light mode */
+        .stRadio input[type="radio"] {
+            accent-color: #ff4b4b !important;
+        }
+        
+        .stRadio > div > label > div:first-child,
+        .stRadio [data-baseweb="radio"] > div:first-child {
+            background-color: #ffffff !important;
+            border-color: #999 !important;
+        }
+        
+        .stRadio > div > label > div:first-child::after,
+        .stRadio input[type="radio"]:checked + div {
+            background-color: #ff4b4b !important;
         }
         
         /* ===== TABS ===== */
@@ -2699,10 +2731,22 @@ else:
                 else:
                     results_html += f"<h3 style='color:{player_color}; text-align:center; margin:5px 0;'>{medals[i]} {player} - {score} pts</h3>"
             
+            # Theme-aware colors for popups
+            if st.session_state.dark_mode:
+                popup_bg = "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
+                popup_text = "#FFFFFF"
+                popup_subtext = "#98D8C8"
+                card_bg = "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)"
+            else:
+                popup_bg = "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%)"
+                popup_text = "#262730"
+                popup_subtext = "#495057"
+                card_bg = "linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)"
+            
             # Celebration popup
             st.markdown(
                 f"""
-                <div style='background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); 
+                <div style='background: {popup_bg}; 
                             padding: 40px; border-radius: 20px; 
                             border: 4px solid {winner_color}; 
                             margin: 30px 0; 
@@ -2711,13 +2755,13 @@ else:
                     <h1 style='color: #FFD700; font-size: 3em; margin-bottom: 20px;'>
                         🎉🏆 GAME OVER! 🏆🎉
                     </h1>
-                    <h2 style='color: #FFFFFF; margin-bottom: 30px;'>
+                    <h2 style='color: {popup_text}; margin-bottom: 30px;'>
                         🧙 The Wizard Tournament Has Concluded! 🧙
                     </h2>
-                    <div style='background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin: 20px 0;'>
+                    <div style='background: rgba(128,128,128,0.1); padding: 20px; border-radius: 15px; margin: 20px 0;'>
                         {results_html}
                     </div>
-                    <p style='color: #98D8C8; font-size: 1.2em; margin-top: 20px;'>
+                    <p style='color: {popup_subtext}; font-size: 1.2em; margin-top: 20px;'>
                         🎊 Congratulations to all players! 🎊
                     </p>
                 </div>
