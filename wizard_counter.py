@@ -97,6 +97,25 @@ if st.session_state.dark_mode:
         .stAlert {
             border-color: #444 !important;
         }
+        
+        /* Toggle switch - make visible in dark mode */
+        [data-testid="stSidebar"] .stCheckbox > label[data-baseweb="checkbox"] > span:first-child,
+        .stToggle > label > div {
+            background-color: #444 !important;
+            border: 2px solid #666 !important;
+        }
+        
+        .stToggle > label > div[data-checked="true"],
+        [data-testid="stSidebar"] [data-baseweb="checkbox"] [data-checked="true"] {
+            background-color: #ff4b4b !important;
+            border-color: #ff4b4b !important;
+        }
+        
+        /* Toggle label text */
+        .stToggle label span {
+            color: #fafafa !important;
+            font-size: 1.2rem !important;
+        }
     </style>
     """
 else:
@@ -168,6 +187,25 @@ else:
         .stDataFrame, .stDataFrame td, .stDataFrame th {
             background-color: #ffffff !important;
             color: #262730 !important;
+        }
+        
+        /* Toggle switch - make visible in light mode */
+        [data-testid="stSidebar"] .stCheckbox > label[data-baseweb="checkbox"] > span:first-child,
+        .stToggle > label > div {
+            background-color: #ccc !important;
+            border: 2px solid #999 !important;
+        }
+        
+        .stToggle > label > div[data-checked="true"],
+        [data-testid="stSidebar"] [data-baseweb="checkbox"] [data-checked="true"] {
+            background-color: #ff4b4b !important;
+            border-color: #ff4b4b !important;
+        }
+        
+        /* Toggle label text */
+        .stToggle label span {
+            color: #262730 !important;
+            font-size: 1.2rem !important;
         }
     </style>
     """
@@ -1533,9 +1571,21 @@ with st.sidebar:
             st.caption(f"Current file: {st.session_state.current_save_file}")
         
         st.markdown("---")
-        if st.button("🔄 New Game", type="secondary"):
-            reset_game()
-            st.rerun()
+        col_new, col_cancel = st.columns(2)
+        with col_new:
+            if st.button("🔄 New Game", type="secondary", use_container_width=True):
+                reset_game()
+                st.rerun()
+        with col_cancel:
+            if st.button("❌ Cancel Game", type="secondary", use_container_width=True, help="Save and exit to start screen"):
+                # Save the current game first
+                filename = st.session_state.current_save_file if st.session_state.current_save_file else None
+                title = f"Game: {', '.join(st.session_state.players)}"
+                save_game(title=title, filename=filename)
+                st.toast("Game saved!")
+                # Reset to fresh state
+                reset_game()
+                st.rerun()
         
         # Roast settings
         st.markdown("---")
