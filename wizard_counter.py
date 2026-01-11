@@ -387,33 +387,55 @@ else:
         
         /* Buttons - secondary */
         .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
-            background-color: #f0f2f6 !important;
-            color: #262730 !important;
-            border-color: #ddd !important;
+            background-color: #e8e8e8 !important;
+            color: #1a1a1a !important;
+            border: 2px solid #999 !important;
         }
         
         .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]):hover {
-            background-color: #e0e2e6 !important;
-            color: #262730 !important;
+            background-color: #d0d0d0 !important;
+            color: #1a1a1a !important;
+            border-color: #666 !important;
         }
         
         /* Sidebar buttons - ensure visible in light mode */
         [data-testid="stSidebar"] .stButton > button {
-            background-color: #e0e2e6 !important;
-            color: #262730 !important;
-            border-color: #ccc !important;
+            background-color: #d8d8d8 !important;
+            color: #1a1a1a !important;
+            border: 2px solid #888 !important;
+            font-weight: 500 !important;
         }
         
         [data-testid="stSidebar"] .stButton > button:hover {
-            background-color: #d0d2d6 !important;
-            color: #262730 !important;
+            background-color: #c0c0c0 !important;
+            color: #1a1a1a !important;
+            border-color: #555 !important;
         }
         
         [data-testid="stSidebar"] .stButton > button[kind="primary"],
         [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] {
             background-color: #ff4b4b !important;
             color: #ffffff !important;
-            border-color: #ff4b4b !important;
+            border: 2px solid #cc0000 !important;
+        }
+        
+        /* Button text visibility */
+        .stButton > button p,
+        .stButton > button span,
+        .stButton > button div,
+        [data-testid="stSidebar"] .stButton > button p,
+        [data-testid="stSidebar"] .stButton > button span,
+        [data-testid="stSidebar"] .stButton > button div {
+            color: #1a1a1a !important;
+        }
+        
+        [data-testid="stSidebar"] .stButton > button[kind="primary"] p,
+        [data-testid="stSidebar"] .stButton > button[kind="primary"] span,
+        [data-testid="stSidebar"] .stButton > button[kind="primary"] div,
+        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] p,
+        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] span,
+        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] div {
+            color: #ffffff !important;
         }
         
         /* Radio buttons / tabs */
