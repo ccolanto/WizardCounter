@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 import json
-import os
 import re
 import requests
 from datetime import datetime
@@ -481,6 +480,18 @@ def generate_round_roast(round_num):
     elif st.session_state.enable_roasts:
         st.session_state.round_roasts[round_num] = "[API not verified - please verify your API key]"
 
+def render_roast_popup(round_num, roast_text, theme):
+    """Render a roast popup with consistent styling."""
+    st.markdown(
+        f"""<div style='background: {theme['roast_bg']}; 
+                     padding: 20px; border-radius: 15px; border: 2px solid #f39c12; 
+                     margin: 10px 0; box-shadow: 0 0 15px #f39c12;'>
+            <h3 style='color: #f39c12; text-align: center; margin-bottom: 10px;'>🔥 Round {round_num} Roast 🔥</h3>
+            <p style='color: {theme['text_primary']}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
+            </div>""",
+        unsafe_allow_html=True
+    )
+
 def analyze_game_stats():
     """Analyze the full game and return comprehensive statistics."""
     max_rounds = st.session_state.max_rounds
@@ -931,6 +942,7 @@ def save_game(title=None, filename=None):
         str(k): v for k, v in st.session_state.game_data.items()
     }
     
+    total_scores = get_total_scores()
     save_data = {
         "title": title,
         "players": st.session_state.players,
@@ -941,7 +953,7 @@ def save_game(title=None, filename=None):
         "max_rounds": st.session_state.max_rounds,
         "game_started": st.session_state.game_started,
         "saved_at": datetime.now().isoformat(),
-        "total_scores": get_total_scores()
+        "total_scores": total_scores
     }
     
     filepath = SAVE_DIR / filename
@@ -951,7 +963,7 @@ def save_game(title=None, filename=None):
         f.write(f"Saved: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Players: {', '.join(st.session_state.players)}\n")
         f.write(f"Round: {st.session_state.current_round} / {st.session_state.max_rounds}\n")
-        f.write(f"Scores: {get_total_scores()}\n")
+        f.write(f"Scores: {total_scores}\n")
         f.write("=" * 35 + "\n\n")
         f.write("--- JSON DATA (DO NOT EDIT BELOW) ---\n")
         f.write(json.dumps(save_data, indent=2))
@@ -1080,8 +1092,12 @@ def replay_game_with_same_players():
     st.session_state.players = players
     st.session_state.player_colors = colors
     st.session_state.starting_dealer_index = starting_dealer
+    _start_game()
+
+def _start_game():
+    """Common logic to start a new game."""
     st.session_state.game_started = True
-    st.session_state.max_rounds = 60 // len(players)
+    st.session_state.max_rounds = 60 // len(st.session_state.players)
     init_round_data(1)
 
 def rename_player(old_name, new_name):
@@ -1200,19 +1216,8 @@ with st.sidebar:
             st.session_state.starting_dealer_index = dealer_options.index(selected_dealer)
             
             if st.button("🎮 Start Game", type="primary"):
-                st.session_state.game_started = True
-                st.session_state.current_round = 1  # Reset to round 1
-                st.session_state.max_rounds = calculated_max_rounds
-                st.session_state.game_data = {}  # Clear any old game data
-                st.session_state.game_finished = False  # Reset game finished flag
-                st.session_state.shot_players = []  # Clear shot players
-                st.session_state.round_roasts = {}  # Clear roasts
-                st.session_state.active_tab = 0  # Start on Bids tab
-                # Initialize game data for round 1
-                st.session_state.game_data[1] = {
-                    player: EMPTY_ROUND_DATA.copy() 
-                    for player in st.session_state.players
-                }
+                _clear_game_state()
+                _start_game()
                 st.rerun()
         else:
             st.warning("Need at least 3 players to start!")
@@ -1798,23 +1803,15 @@ else:
                 else:
                     st.info("Final Round! Enter all bids and tricks, then click Finish Game.")
     
-    # Show shot popup if there are players who need to take a shot
+    # Handle shot popup and roast display
+    prev_round = st.session_state.current_round - 1
+    has_roast = prev_round in st.session_state.round_roasts
+    
     if st.session_state.shot_players:
         theme = get_theme_colors()
         
-        # Show roast first if available
-        prev_round = st.session_state.current_round - 1
-        if prev_round in st.session_state.round_roasts:
-            roast_text = st.session_state.round_roasts[prev_round]
-            st.markdown(
-                f"""<div style='background: {theme['roast_bg']}; 
-                             padding: 20px; border-radius: 15px; border: 2px solid #f39c12; 
-                             margin: 10px 0; box-shadow: 0 0 15px #f39c12;'>
-                    <h3 style='color: #f39c12; text-align: center; margin-bottom: 10px;'>🔥 Round {prev_round} Roast 🔥</h3>
-                    <p style='color: {theme['text_primary']}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
-                    </div>""",
-                unsafe_allow_html=True
-            )
+        if has_roast:
+            render_roast_popup(prev_round, st.session_state.round_roasts[prev_round], theme)
         
         shot_html = "".join(
             f"<h2 style='color:{st.session_state.player_colors.get(p, '#FF0000')}; text-align:center;'>🍺 {p.upper()} NEEDS TO TAKE A SHOT! 🍺</h2>"
@@ -1832,28 +1829,15 @@ else:
         
         if st.button("✅ Acknowledged - Shots Taken!", type="primary"):
             st.session_state.shot_players = []
-            if prev_round in st.session_state.round_roasts:
+            if has_roast:
                 del st.session_state.round_roasts[prev_round]
             st.rerun()
     
-    # Show roast popup even if no shot players (when there's a pending roast)
-    elif not st.session_state.shot_players:
-        prev_round = st.session_state.current_round - 1
-        if prev_round in st.session_state.round_roasts:
-            theme = get_theme_colors()
-            roast_text = st.session_state.round_roasts[prev_round]
-            st.markdown(
-                f"""<div style='background: {theme['roast_bg']};  
-                             padding: 20px; border-radius: 15px; border: 2px solid #f39c12; 
-                             margin: 10px 0; box-shadow: 0 0 15px #f39c12;'>
-                    <h3 style='color: #f39c12; text-align: center; margin-bottom: 10px;'>🔥 Round {prev_round} Roast 🔥</h3>
-                    <p style='color: {theme['text_primary']}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
-                    </div>""",
-                unsafe_allow_html=True
-            )
-            if st.button("😂 Clear Roast", type="primary"):
-                del st.session_state.round_roasts[prev_round]
-                st.rerun()
+    elif has_roast:
+        render_roast_popup(prev_round, st.session_state.round_roasts[prev_round], get_theme_colors())
+        if st.button("😂 Clear Roast", type="primary"):
+            del st.session_state.round_roasts[prev_round]
+            st.rerun()
 
     if st.session_state.active_tab == 2:  # Scoreboard tab
         st.subheader("📊 Full Scoreboard")
