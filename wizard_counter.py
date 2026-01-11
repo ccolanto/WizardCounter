@@ -2452,15 +2452,23 @@ else:
                     st.session_state.current_round -= 1
                     st.rerun()
         with nav_col2:
-            # Only allow going to tricks if total bids != current round (valid bid state)
-            bids_valid = total_bids != current_round
+            # Check if any bids have been entered (at least one non-None bid)
+            any_bids_entered = any(
+                st.session_state.game_data[current_round][p]['bid'] is not None 
+                for p in st.session_state.players
+            )
+            # Only allow going to tricks if total bids != current round (valid bid state) AND bids entered
+            bids_valid = total_bids != current_round and any_bids_entered
             if bids_valid:
                 if st.button("Go to Tricks 🃏 ➡️", type="primary", key="go_to_tricks"):
                     st.session_state.pending_tab = 1
                     st.rerun()
             else:
                 st.button("Go to Tricks 🃏 ➡️", type="primary", disabled=True, key="go_to_tricks_disabled")
-                st.caption("⚠️ Total bids cannot equal tricks available")
+                if not any_bids_entered:
+                    st.caption("⚠️ Enter bids first")
+                else:
+                    st.caption("⚠️ Total bids cannot equal tricks available")
     
     elif st.session_state.active_tab == 1:  # Tricks tab
         st.subheader("Enter Tricks Won")
