@@ -92,6 +92,27 @@ if st.session_state.dark_mode:
             border-color: #444 !important;
         }
         
+        /* Sidebar buttons - ensure consistent sizing in dark mode */
+        [data-testid="stSidebar"] .stButton > button {
+            width: 100% !important;
+            min-width: 100% !important;
+        }
+        
+        [data-testid="stSidebar"] .stButton {
+            width: 100% !important;
+        }
+        
+        [data-testid="stSidebar"] [data-testid="column"] {
+            width: 50% !important;
+            flex: 1 1 50% !important;
+        }
+        
+        [data-testid="stSidebar"] .stButton > button[kind="primary"],
+        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] {
+            width: 100% !important;
+            min-width: 100% !important;
+        }
+        
         /* Radio buttons / tabs */
         .stRadio > div > label {
             background: #262730 !important;
@@ -434,6 +455,17 @@ else:
             color: #000000 !important;
             border: 2px solid #888 !important;
             font-weight: 600 !important;
+            width: 100% !important;
+            min-width: 100% !important;
+        }
+        
+        [data-testid="stSidebar"] .stButton {
+            width: 100% !important;
+        }
+        
+        [data-testid="stSidebar"] [data-testid="column"] {
+            width: 50% !important;
+            flex: 1 1 50% !important;
         }
         
         [data-testid="stSidebar"] .stButton > button:hover {
@@ -447,6 +479,7 @@ else:
             background-color: #ff4b4b !important;
             color: #ffffff !important;
             border: 2px solid #cc0000 !important;
+            width: 100% !important;
         }
         
         /* Button text visibility - FORCE black text on all button elements */
@@ -1004,17 +1037,35 @@ st.markdown("""
         max-width: none !important;
     }
     
-    [data-testid="stSidebar"] [data-testid="column"] .stButton > button {
+    /* Small buttons in sidebar (like remove player X buttons) */
+    [data-testid="stSidebar"] [data-testid="column"] .stButton > button:not([data-baseweb="button"]) {
         min-height: 36px !important;
-        height: 36px !important;
         min-width: 36px !important;
-        width: auto !important;
-        max-width: none !important;
-        padding: 0 8px !important;
-        margin: 0 !important;
+    }
+    
+    /* Full-width sidebar buttons in columns - ALL buttons get consistent height and width */
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton {
+        width: 100% !important;
+        flex: 1 !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton > button {
+        height: 44px !important;
+        min-height: 44px !important;
+        max-height: 44px !important;
+        width: 100% !important;
+        min-width: 100% !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Ensure columns in horizontal blocks are equal width */
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        flex: 1 1 0 !important;
+        width: 0 !important;
+        min-width: 0 !important;
     }
     
     /* Override max-width on ALL button inner elements */
@@ -2067,14 +2118,14 @@ with st.sidebar:
         
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("💾 Save", type="primary"):
+            if st.button("💾 Save", type="primary", use_container_width=True):
                 # Use existing filename if available, otherwise create new
                 filename = st.session_state.current_save_file if st.session_state.current_save_file else None
                 save_game(title=save_title, filename=filename)
                 st.success(f"Game saved!")
         
         with col2:
-            if st.button("📄 Save as New"):
+            if st.button("📄 Save as New", type="primary", use_container_width=True):
                 # Always create a new file
                 save_game(title=save_title, filename=None)
                 st.success(f"Saved as new file!")
@@ -2089,7 +2140,7 @@ with st.sidebar:
                 reset_game()
                 st.rerun()
         with col_cancel:
-            if st.button("❌ Cancel Game", type="primary", use_container_width=True, help="Save and exit to start screen"):
+            if st.button("❌ Cancel Game", type="primary", use_container_width=True):
                 # Save the current game first
                 filename = st.session_state.current_save_file if st.session_state.current_save_file else None
                 title = f"Game: {', '.join(st.session_state.players)}"
