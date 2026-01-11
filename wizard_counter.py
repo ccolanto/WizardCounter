@@ -2347,14 +2347,17 @@ else:
         cols = st.columns(len(st.session_state.players))
         for i, player in enumerate(st.session_state.players):
             with cols[i]:
+                player_color = st.session_state.player_colors.get(player, "#808080")
+                st.markdown(f"<b style='color:{player_color};'>{player}</b>", unsafe_allow_html=True)
                 current_bid = st.session_state.game_data[current_round][player]['bid']
                 bid = st.number_input(
-                    f"**{player}**",
+                    f"Bid for {player}",
                     min_value=0,
                     max_value=current_round,
                     value=current_bid if current_bid is not None else 0,
                     step=1,
-                    key=f"bid_{player}_{current_round}"
+                    key=f"bid_{player}_{current_round}",
+                    label_visibility="collapsed"
                 )
                 st.session_state.game_data[current_round][player]['bid'] = bid
         
