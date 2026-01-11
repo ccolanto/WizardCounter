@@ -60,6 +60,31 @@ if st.session_state.dark_mode:
             border-color: #444 !important;
         }
         
+        /* Selectbox - ensure visibility in dark mode */
+        .stSelectbox > div > div,
+        .stSelectbox [data-baseweb="select"] > div,
+        .stSelectbox [data-baseweb="select"] {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+        }
+        
+        .stSelectbox [data-baseweb="select"] span,
+        .stSelectbox [data-baseweb="select"] div {
+            color: #fafafa !important;
+        }
+        
+        /* Selectbox dropdown menu */
+        [data-baseweb="popover"] [data-baseweb="menu"],
+        [data-baseweb="popover"] ul,
+        [data-baseweb="popover"] li {
+            background-color: #262730 !important;
+            color: #fafafa !important;
+        }
+        
+        [data-baseweb="popover"] li:hover {
+            background-color: #3d3d4d !important;
+        }
+        
         /* Buttons - secondary */
         .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
             background-color: #262730 !important;
@@ -154,6 +179,31 @@ else:
             background-color: #ffffff !important;
             color: #262730 !important;
             border-color: #ddd !important;
+        }
+        
+        /* Selectbox - ensure visibility in light mode */
+        .stSelectbox > div > div,
+        .stSelectbox [data-baseweb="select"] > div,
+        .stSelectbox [data-baseweb="select"] {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+        }
+        
+        .stSelectbox [data-baseweb="select"] span,
+        .stSelectbox [data-baseweb="select"] div {
+            color: #262730 !important;
+        }
+        
+        /* Selectbox dropdown menu */
+        [data-baseweb="popover"] [data-baseweb="menu"],
+        [data-baseweb="popover"] ul,
+        [data-baseweb="popover"] li {
+            background-color: #ffffff !important;
+            color: #262730 !important;
+        }
+        
+        [data-baseweb="popover"] li:hover {
+            background-color: #f0f2f6 !important;
         }
         
         /* Buttons - secondary */
