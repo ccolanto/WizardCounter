@@ -19,7 +19,7 @@ st.set_page_config(page_title="The Grand Fardini", page_icon="🧙", layout="wid
 
 # Initialize dark_mode early (before CSS that uses it)
 if 'dark_mode' not in st.session_state:
-    st.session_state.dark_mode = False
+    st.session_state.dark_mode = True  # Default to dark mode to match system default
 
 # Generate theme-specific CSS based on toggle state
 if st.session_state.dark_mode:
@@ -204,20 +204,17 @@ if st.session_state.dark_mode:
             color: #ffffff !important;
         }
         
-        /* Radio button circles - style for dark mode */
-        .stRadio input[type="radio"] {
-            accent-color: #ff4b4b !important;
-        }
-        
+        /* Radio button circles - HIDE them */
+        .stRadio input[type="radio"],
         .stRadio > div > label > div:first-child,
-        .stRadio [data-baseweb="radio"] > div:first-child {
-            background-color: #262730 !important;
-            border-color: #666 !important;
-        }
-        
-        .stRadio > div > label > div:first-child::after,
-        .stRadio input[type="radio"]:checked + div {
-            background-color: #ff4b4b !important;
+        .stRadio [data-baseweb="radio"] > div:first-child,
+        .stRadio [data-testid="stMarkdownContainer"]:has(input[type="radio"]) > div:first-child {
+            display: none !important;
+            visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
         /* ===== TABS ===== */
@@ -553,20 +550,17 @@ else:
             color: #ffffff !important;
         }
         
-        /* Radio button circles - hide or style for light mode */
-        .stRadio input[type="radio"] {
-            accent-color: #ff4b4b !important;
-        }
-        
+        /* Radio button circles - HIDE them */
+        .stRadio input[type="radio"],
         .stRadio > div > label > div:first-child,
-        .stRadio [data-baseweb="radio"] > div:first-child {
-            background-color: #ffffff !important;
-            border-color: #999 !important;
-        }
-        
-        .stRadio > div > label > div:first-child::after,
-        .stRadio input[type="radio"]:checked + div {
-            background-color: #ff4b4b !important;
+        .stRadio [data-baseweb="radio"] > div:first-child,
+        .stRadio [data-testid="stMarkdownContainer"]:has(input[type="radio"]) > div:first-child {
+            display: none !important;
+            visibility: hidden !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
         /* ===== TABS ===== */
@@ -2051,11 +2045,11 @@ with st.sidebar:
         st.markdown("---")
         col_new, col_cancel = st.columns(2)
         with col_new:
-            if st.button("🔄 New Game", type="secondary", use_container_width=True):
+            if st.button("🔄 New Game", type="primary", use_container_width=True):
                 reset_game()
                 st.rerun()
         with col_cancel:
-            if st.button("❌ Cancel Game", type="secondary", use_container_width=True, help="Save and exit to start screen"):
+            if st.button("❌ Cancel Game", type="primary", use_container_width=True, help="Save and exit to start screen"):
                 # Save the current game first
                 filename = st.session_state.current_save_file if st.session_state.current_save_file else None
                 title = f"Game: {', '.join(st.session_state.players)}"
