@@ -1499,7 +1499,7 @@ if not st.session_state.game_started:
 
 else:
     # Current round input
-    st.header(f"📍 Round {st.session_state.current_round}")
+    st.header(f"📍 Round {st.session_state.current_round} of {st.session_state.max_rounds}")
     
     # Calculate current dealer (rotates each round)
     num_players = len(st.session_state.players)
