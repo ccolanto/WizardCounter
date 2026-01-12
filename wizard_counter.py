@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 import json
-import os
 import re
 import requests
 from datetime import datetime
@@ -23,1171 +22,305 @@ if 'dark_mode' not in st.session_state:
 
 # Generate theme-specific CSS based on toggle state
 if st.session_state.dark_mode:
-    # Dark mode colors
+    # Dark mode CSS
     theme_css = """
     <style>
-        /* ===== FORCED DARK MODE ===== */
+        /* ===== DARK MODE THEME ===== */
         :root {
-            --text-primary: #fafafa !important;
-            --text-secondary: #ccc !important;
-            --bg-primary: #0e1117 !important;
-            --bg-secondary: #262730 !important;
-            --bg-hover: #3d3d4d !important;
-            --border-color: #444 !important;
+            --text-primary: #fafafa;
+            --text-secondary: #ccc;
+            --bg-primary: #0e1117;
+            --bg-secondary: #262730;
+            --bg-hover: #3d3d4d;
+            --border-color: #444;
+            --accent: #ff4b4b;
         }
         
-        /* Force dark backgrounds */
-        .stApp, [data-testid="stAppViewContainer"], .main, [data-testid="stHeader"] {
-            background-color: #0e1117 !important;
+        /* Base backgrounds */
+        .stApp, [data-testid="stAppViewContainer"], .main, [data-testid="stHeader"] { background-color: #0e1117 !important; }
+        [data-testid="stSidebar"], [data-testid="stSidebar"] > div { background-color: #262730 !important; }
+        
+        /* Text colors */
+        body, .stApp, p, span, label, h1, h2, h3, h4, h5, h6, .stMarkdown, .stText, div, li, td, th,
+        [data-testid="stSidebar"] *, .stToggle label span, [data-testid="stWidgetLabel"] { color: #fafafa !important; }
+        
+        /* Inputs */
+        input, textarea, select, .stTextInput input, .stNumberInput input, .stSelectbox select,
+        [data-baseweb="input"] input, .stNumberInput > div > div > input {
+            background-color: #262730 !important; color: #fafafa !important; border-color: #444 !important;
         }
         
-        [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
-            background-color: #262730 !important;
-        }
+        /* Selectbox */
+        .stSelectbox > div > div, .stSelectbox [data-baseweb="select"] > div, .stSelectbox [data-baseweb="select"],
+        .stSelectbox [data-baseweb="select"] span, .stSelectbox [data-baseweb="select"] div { background-color: #262730 !important; color: #fafafa !important; }
+        [data-baseweb="popover"] [data-baseweb="menu"], [data-baseweb="popover"] ul, [data-baseweb="popover"] li { background-color: #262730 !important; color: #fafafa !important; }
+        [data-baseweb="popover"] li:hover { background-color: #3d3d4d !important; }
         
-        /* Force light text everywhere */
-        body, .stApp, p, span, label, h1, h2, h3, h4, h5, h6, 
-        .stMarkdown, .stText, div, li, td, th,
-        [data-testid="stSidebar"] * {
-            color: #fafafa !important;
-        }
+        /* Buttons */
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) { background-color: #262730 !important; color: #fafafa !important; border-color: #444 !important; }
+        [data-testid="stSidebar"] .stButton > button, [data-testid="stSidebar"] .stButton { width: 100% !important; min-width: 100% !important; }
+        [data-testid="stSidebar"] [data-testid="column"] { width: 50% !important; flex: 1 1 50% !important; }
         
-        /* Input fields */
-        input, textarea, select, .stTextInput input, .stNumberInput input, 
-        .stSelectbox select, [data-baseweb="input"] input {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border-color: #444 !important;
-        }
+        /* Radio/Tabs */
+        .stRadio > div > label { background: #262730 !important; color: #fafafa !important; }
+        .stRadio > div > label:hover { background: #3d3d4d !important; }
+        .stRadio [role="radiogroup"], .stRadio > div { background-color: transparent !important; }
+        .stRadio [role="radio"], .stRadio > div > label, .stRadio > div > div > label { background-color: #262730 !important; color: #fafafa !important; border-color: #444 !important; }
+        .stRadio [role="radio"]:hover, .stRadio > div > label:hover { background-color: #3d3d4d !important; }
+        .stRadio [role="radio"][aria-checked="true"], .stRadio > div > label[data-checked="true"], .stRadio > div > label:has(input:checked) { background-color: #ff4b4b !important; color: #ffffff !important; }
         
-        /* Selectbox - ensure visibility in dark mode */
-        .stSelectbox > div > div,
-        .stSelectbox [data-baseweb="select"] > div,
-        .stSelectbox [data-baseweb="select"] {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        .stSelectbox [data-baseweb="select"] span,
-        .stSelectbox [data-baseweb="select"] div {
-            color: #fafafa !important;
-        }
-        
-        /* Selectbox dropdown menu */
-        [data-baseweb="popover"] [data-baseweb="menu"],
-        [data-baseweb="popover"] ul,
-        [data-baseweb="popover"] li {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        [data-baseweb="popover"] li:hover {
-            background-color: #3d3d4d !important;
-        }
-        
-        /* Buttons - secondary */
-        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border-color: #444 !important;
-        }
-        
-        /* Sidebar buttons - ensure consistent sizing in dark mode */
-        [data-testid="stSidebar"] .stButton > button {
-            width: 100% !important;
-            min-width: 100% !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton {
-            width: 100% !important;
-        }
-        
-        [data-testid="stSidebar"] [data-testid="column"] {
-            width: 50% !important;
-            flex: 1 1 50% !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button[kind="primary"],
-        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] {
-            width: 100% !important;
-            min-width: 100% !important;
-        }
-        
-        /* Radio buttons / tabs */
-        .stRadio > div > label {
-            background: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        .stRadio > div > label:hover {
-            background: #3d3d4d !important;
-        }
+        /* Hide radio circles */
+        .stRadio input[type="radio"], .stRadio > div > label > div:first-child, .stRadio [data-baseweb="radio"] > div:first-child { display: none !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
         
         /* Expanders */
-        .streamlit-expanderHeader {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
+        .streamlit-expanderHeader { background-color: #262730 !important; color: #fafafa !important; }
+        .streamlit-expanderContent { background-color: #1a1a2e !important; }
         
-        .streamlit-expanderContent {
-            background-color: #1a1a2e !important;
-        }
+        /* Data frames/Tables */
+        .stDataFrame, .stDataFrame td, .stDataFrame th, table, tr, td, th, .stTable, .stTable td, .stTable th { background-color: #262730 !important; color: #fafafa !important; border-color: #444 !important; }
+        [data-testid="stDataFrame"], [data-testid="stDataFrame"] > div, [data-testid="stDataFrame"] iframe { background-color: #262730 !important; }
+        .dvn-scroller, .gdg-style, [class*="glideDataEditor"], [data-testid="stDataFrame"] [class*="cell"], [data-testid="stDataFrame"] [role="gridcell"], [data-testid="stDataFrame"] [role="columnheader"] { background-color: #262730 !important; color: #fafafa !important; }
+        [data-testid="stDataFrame"] span, [data-testid="stDataFrame"] div { color: #fafafa !important; }
         
-        /* Data frames */
-        .stDataFrame, .stDataFrame td, .stDataFrame th {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
+        /* Toggle */
+        .stToggle > label > div, [data-baseweb="checkbox"] > div:first-child { background-color: #444 !important; border: 2px solid #666 !important; }
+        .stToggle > label > div[data-checked="true"], [data-baseweb="checkbox"] > div:first-child[aria-checked="true"], [role="checkbox"][aria-checked="true"] { background-color: #ff4b4b !important; border-color: #ff4b4b !important; }
+        [data-baseweb="checkbox"] > div:first-child > div, .stToggle > label > div > div { background-color: #fafafa !important; }
         
-        /* Alerts - keep their colors but adjust */
-        .stAlert {
-            border-color: #444 !important;
-        }
+        /* Number inputs */
+        .stNumberInput button, .stNumberInput [data-testid="stNumberInputStepUp"], .stNumberInput [data-testid="stNumberInputStepDown"] { background-color: #262730 !important; color: #fafafa !important; border-color: #444 !important; }
+        .stNumberInput button:hover { background-color: #3d3d4d !important; }
+        .stNumberInput button svg { fill: #fafafa !important; stroke: #fafafa !important; }
         
-        /* Toggle switch - make visible in dark mode */
-        [data-testid="stSidebar"] .stCheckbox > label[data-baseweb="checkbox"] > span:first-child,
-        .stToggle > label > div,
-        [data-testid="stWidgetLabel"] + div [role="checkbox"],
-        [data-baseweb="checkbox"] > div:first-child {
-            background-color: #444 !important;
-            border: 2px solid #666 !important;
-        }
+        /* Tabs */
+        .stTabs [data-baseweb="tab-list"], .stTabs [data-baseweb="tab"] { background-color: #262730 !important; color: #fafafa !important; }
+        .stTabs [data-baseweb="tab"]:hover { background-color: #3d3d4d !important; }
+        .stTabs [aria-selected="true"] { background-color: #0e1117 !important; color: #fafafa !important; }
         
-        .stToggle > label > div[data-checked="true"],
-        [data-testid="stSidebar"] [data-baseweb="checkbox"] [data-checked="true"],
-        [data-baseweb="checkbox"] > div:first-child[aria-checked="true"],
-        [role="checkbox"][aria-checked="true"] {
-            background-color: #ff4b4b !important;
-            border-color: #ff4b4b !important;
-        }
+        /* Containers */
+        [data-testid="stVerticalBlock"], [data-testid="stHorizontalBlock"], .element-container, .stMarkdown, [data-testid="column"] { background-color: transparent !important; }
+        [data-testid="stMetric"], [data-testid="stMetricValue"], [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] { background-color: transparent !important; color: #fafafa !important; }
         
-        /* Toggle thumb/knob */
-        [data-baseweb="checkbox"] > div:first-child > div,
-        .stToggle > label > div > div {
-            background-color: #fafafa !important;
-        }
+        /* Charts */
+        .stPlotlyChart, .js-plotly-plot, .plotly, .plot-container, .vega-embed, [data-testid="stVegaLiteChart"] { background-color: #0e1117 !important; }
+        .js-plotly-plot .plotly .bg { fill: #0e1117 !important; }
+        .vega-embed .vega-bindings { color: #fafafa !important; }
         
-        /* Toggle label text */
-        .stToggle label span,
-        [data-testid="stWidgetLabel"] {
-            color: #fafafa !important;
-            font-size: 1.2rem !important;
-        }
-        
-        /* ===== NUMBER INPUT - Plus/Minus buttons ===== */
-        .stNumberInput button,
-        .stNumberInput [data-testid="stNumberInputStepUp"],
-        .stNumberInput [data-testid="stNumberInputStepDown"] {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border-color: #444 !important;
-        }
-        
-        .stNumberInput button:hover {
-            background-color: #3d3d4d !important;
-        }
-        
-        .stNumberInput button svg,
-        .stNumberInput [data-testid="stNumberInputStepUp"] svg,
-        .stNumberInput [data-testid="stNumberInputStepDown"] svg {
-            fill: #fafafa !important;
-            stroke: #fafafa !important;
-        }
-        
-        .stNumberInput > div > div > input {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        /* ===== RADIO BUTTONS - Tab style ===== */
-        .stRadio [role="radiogroup"],
-        .stRadio > div {
-            background-color: transparent !important;
-        }
-        
-        .stRadio [role="radio"],
-        .stRadio > div > label,
-        .stRadio > div > div > label {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border-color: #444 !important;
-        }
-        
-        .stRadio [role="radio"]:hover,
-        .stRadio > div > label:hover {
-            background-color: #3d3d4d !important;
-        }
-        
-        .stRadio [role="radio"][aria-checked="true"],
-        .stRadio > div > label[data-checked="true"],
-        .stRadio > div > label:has(input:checked) {
-            background-color: #ff4b4b !important;
-            color: #ffffff !important;
-        }
-        
-        /* Radio button circles - HIDE them */
-        .stRadio input[type="radio"],
-        .stRadio > div > label > div:first-child,
-        .stRadio [data-baseweb="radio"] > div:first-child,
-        .stRadio [data-testid="stMarkdownContainer"]:has(input[type="radio"]) > div:first-child {
-            display: none !important;
-            visibility: hidden !important;
-            width: 0 !important;
-            height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* ===== TABS ===== */
-        .stTabs [data-baseweb="tab-list"] {
-            background-color: #262730 !important;
-        }
-        
-        .stTabs [data-baseweb="tab"] {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        .stTabs [data-baseweb="tab"]:hover {
-            background-color: #3d3d4d !important;
-        }
-        
-        .stTabs [aria-selected="true"] {
-            background-color: #0e1117 !important;
-            color: #fafafa !important;
-        }
-        
-        /* ===== MAIN CONTENT CONTAINERS ===== */
-        [data-testid="stVerticalBlock"],
-        [data-testid="stHorizontalBlock"],
-        .element-container,
-        .stMarkdown,
-        [data-testid="column"] {
-            background-color: transparent !important;
-        }
-        
-        /* ===== METRIC / SCORE DISPLAYS ===== */
-        [data-testid="stMetric"],
-        [data-testid="stMetricValue"],
-        [data-testid="stMetricLabel"],
-        [data-testid="stMetricDelta"] {
-            background-color: transparent !important;
-            color: #fafafa !important;
-        }
-        
-        /* ===== CHARTS / PLOTLY ===== */
-        .stPlotlyChart,
-        .js-plotly-plot,
-        .plotly,
-        .plot-container {
-            background-color: #0e1117 !important;
-        }
-        
-        .js-plotly-plot .plotly .bg {
-            fill: #0e1117 !important;
-        }
-        
-        /* ===== TABLES / DATAFRAMES ===== */
-        table, tr, td, th,
-        .stTable, .stTable td, .stTable th {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-            border-color: #444 !important;
-        }
-        
-        /* Streamlit Dataframe specific */
-        .stDataFrame,
-        [data-testid="stDataFrame"],
-        [data-testid="stDataFrame"] > div,
-        [data-testid="stDataFrame"] iframe {
-            background-color: #262730 !important;
-        }
-        
-        /* Glide Data Grid (used by st.dataframe) */
-        .dvn-scroller,
-        .gdg-style,
-        [class*="glideDataEditor"],
-        [data-testid="stDataFrame"] [class*="cell"],
-        [data-testid="stDataFrame"] [role="gridcell"],
-        [data-testid="stDataFrame"] [role="columnheader"] {
-            background-color: #262730 !important;
-            color: #fafafa !important;
-        }
-        
-        /* Ensure dataframe text is visible */
-        [data-testid="stDataFrame"] span,
-        [data-testid="stDataFrame"] div {
-            color: #fafafa !important;
-        }
-        
-        /* Altair / Vega charts */
-        .vega-embed,
-        .vega-embed .chart-wrapper,
-        [data-testid="stVegaLiteChart"],
-        [data-testid="stVegaLiteChart"] > div {
-            background-color: #0e1117 !important;
-        }
-        
-        .vega-embed .vega-bindings {
-            color: #fafafa !important;
-        }
-        
-        /* ===== CARDS / CONTAINERS ===== */
-        .stContainer,
-        [data-testid="stExpander"],
-        [data-testid="stForm"] {
-            background-color: #0e1117 !important;
-        }
+        .stContainer, [data-testid="stExpander"], [data-testid="stForm"] { background-color: #0e1117 !important; }
+        .stAlert { border-color: #444 !important; }
     </style>
     """
 else:
-    # Light mode colors
+    # Light mode CSS
     theme_css = """
     <style>
-        /* ===== FORCED LIGHT MODE ===== */
+        /* ===== LIGHT MODE THEME ===== */
         :root {
-            --text-primary: #262730 !important;
-            --text-secondary: #555 !important;
-            --bg-primary: #ffffff !important;
-            --bg-secondary: #f0f2f6 !important;
-            --bg-hover: #e0e2e6 !important;
-            --border-color: #ddd !important;
+            --text-primary: #262730;
+            --text-secondary: #555;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f0f2f6;
+            --bg-hover: #e0e2e6;
+            --border-color: #ddd;
+            --accent: #ff4b4b;
         }
         
-        /* Force light backgrounds */
-        .stApp, [data-testid="stAppViewContainer"], .main, [data-testid="stHeader"] {
-            background-color: #ffffff !important;
+        /* Base backgrounds */
+        .stApp, [data-testid="stAppViewContainer"], .main, [data-testid="stHeader"] { background-color: #ffffff !important; }
+        [data-testid="stSidebar"], [data-testid="stSidebar"] > div { background-color: #f0f2f6 !important; }
+        
+        /* Text colors */
+        body, .stApp, p, span, label, h1, h2, h3, h4, h5, h6, .stMarkdown, .stText, div, li, td, th,
+        [data-testid="stSidebar"] *, .stToggle label span, [data-testid="stWidgetLabel"] { color: #262730 !important; }
+        
+        /* Sidebar button text - force black */
+        [data-testid="stSidebar"] button, [data-testid="stSidebar"] button *, [data-testid="stSidebar"] .stButton button * { color: #000000 !important; -webkit-text-fill-color: #000000 !important; }
+        
+        /* Inputs */
+        input, textarea, select, .stTextInput input, .stNumberInput input, .stSelectbox select,
+        [data-baseweb="input"] input, .stNumberInput > div > div > input {
+            background-color: #ffffff !important; color: #262730 !important; border: 1px solid #888 !important; border-radius: 4px !important;
         }
         
-        [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
-            background-color: #f0f2f6 !important;
-        }
+        /* Sidebar inputs */
+        [data-testid="stSidebar"] .stTextInput > div > div, [data-testid="stSidebar"] [data-baseweb="base-input"], [data-testid="stSidebar"] [data-baseweb="input"] { background-color: #ffffff !important; border: 1px solid #555 !important; border-radius: 4px !important; }
+        [data-testid="stSidebar"] input, [data-testid="stSidebar"] .stTextInput input { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; border: none !important; }
         
-        /* Force dark text everywhere */
-        body, .stApp, p, span, label, h1, h2, h3, h4, h5, h6, 
-        .stMarkdown, .stText, div, li, td, th,
-        [data-testid="stSidebar"] * {
-            color: #262730 !important;
-        }
+        /* Selectbox */
+        .stSelectbox > div > div, .stSelectbox [data-baseweb="select"] > div, .stSelectbox [data-baseweb="select"],
+        .stSelectbox [data-baseweb="select"] span, .stSelectbox [data-baseweb="select"] div { background-color: #ffffff !important; color: #262730 !important; }
+        [data-baseweb="popover"] [data-baseweb="menu"], [data-baseweb="popover"] ul, [data-baseweb="popover"] li { background-color: #ffffff !important; color: #262730 !important; }
+        [data-baseweb="popover"] li:hover { background-color: #f0f2f6 !important; }
         
-        /* CRITICAL: Force sidebar button text to be black - placed early for higher specificity cascade */
-        [data-testid="stSidebar"] button,
-        [data-testid="stSidebar"] button *,
-        [data-testid="stSidebar"] .stButton button,
-        [data-testid="stSidebar"] .stButton button * {
-            color: #000000 !important;
-            -webkit-text-fill-color: #000000 !important;
-        }
+        /* Secondary buttons */
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) { background-color: #e8e8e8 !important; color: #1a1a1a !important; border: 2px solid #999 !important; }
+        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]):hover { background-color: #d0d0d0 !important; border-color: #666 !important; }
         
-        /* Input fields */
-        input, textarea, select, .stTextInput input, .stNumberInput input, 
-        .stSelectbox select, [data-baseweb="input"] input {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-            border: 1px solid #888 !important;
-            border-radius: 4px !important;
-        }
+        /* Sidebar buttons */
+        [data-testid="stSidebar"] .stButton > button { background-color: #d8d8d8 !important; color: #000000 !important; border: 2px solid #888 !important; font-weight: 600 !important; width: 100% !important; min-width: 100% !important; }
+        [data-testid="stSidebar"] .stButton { width: 100% !important; }
+        [data-testid="stSidebar"] [data-testid="column"] { width: 50% !important; flex: 1 1 50% !important; }
+        [data-testid="stSidebar"] .stButton > button:hover { background-color: #c0c0c0 !important; border-color: #555 !important; }
+        [data-testid="stSidebar"] .stButton > button[kind="primary"], [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] { background-color: #ff4b4b !important; color: #ffffff !important; border: 2px solid #cc0000 !important; }
         
-        /* Sidebar input fields - ensure high visibility */
-        [data-testid="stSidebar"] .stTextInput > div > div,
-        [data-testid="stSidebar"] [data-baseweb="base-input"],
-        [data-testid="stSidebar"] [data-baseweb="input"] {
-            background-color: #ffffff !important;
-            border: 1px solid #555 !important;
-            border-radius: 4px !important;
-        }
+        /* Primary button text white */
+        [data-testid="stSidebar"] .stButton > button[kind="primary"] *, .stButton > button[kind="primary"] *, .stButton > button[data-testid="baseButton-primary"] * { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
         
-        [data-testid="stSidebar"] input,
-        [data-testid="stSidebar"] .stTextInput input,
-        [data-testid="stSidebar"] [data-baseweb="input"] input {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            -webkit-text-fill-color: #000000 !important;
-            border: none !important;
-        }
+        /* Disabled buttons */
+        .stButton > button:disabled, .stButton > button[disabled] { background-color: #e0e0e0 !important; color: #888888 !important; border: 1px solid #bbb !important; opacity: 0.7 !important; cursor: not-allowed !important; }
+        .stButton > button:disabled *, .stButton > button[disabled] * { color: #888888 !important; -webkit-text-fill-color: #888888 !important; }
         
-        [data-testid="stSidebar"] .stTextInput label,
-        [data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
-            color: #262730 !important;
-        }
+        /* Radio/Tabs */
+        .stRadio > div > label { background: #f0f2f6 !important; color: #262730 !important; }
+        .stRadio > div > label:hover { background: #e0e2e6 !important; }
+        .stRadio [role="radiogroup"], .stRadio > div { background-color: transparent !important; }
+        .stRadio [role="radio"], .stRadio > div > label, .stRadio > div > div > label { background-color: #f0f2f6 !important; color: #262730 !important; border-color: #ddd !important; }
+        .stRadio [role="radio"]:hover, .stRadio > div > label:hover { background-color: #e0e2e6 !important; }
+        .stRadio [role="radio"][aria-checked="true"], .stRadio > div > label[data-checked="true"], .stRadio > div > label:has(input:checked) { background-color: #ff4b4b !important; color: #ffffff !important; }
         
-        /* Selectbox - ensure visibility in light mode */
-        .stSelectbox > div > div,
-        .stSelectbox [data-baseweb="select"] > div,
-        .stSelectbox [data-baseweb="select"] {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        
-        .stSelectbox [data-baseweb="select"] span,
-        .stSelectbox [data-baseweb="select"] div {
-            color: #262730 !important;
-        }
-        
-        /* Selectbox dropdown menu */
-        [data-baseweb="popover"] [data-baseweb="menu"],
-        [data-baseweb="popover"] ul,
-        [data-baseweb="popover"] li {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        
-        [data-baseweb="popover"] li:hover {
-            background-color: #f0f2f6 !important;
-        }
-        
-        /* Buttons - secondary */
-        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]) {
-            background-color: #e8e8e8 !important;
-            color: #1a1a1a !important;
-            border: 2px solid #999 !important;
-        }
-        
-        .stButton > button:not([kind="primary"]):not([data-testid="baseButton-primary"]):hover {
-            background-color: #d0d0d0 !important;
-            color: #1a1a1a !important;
-            border-color: #666 !important;
-        }
-        
-        /* Sidebar buttons - ensure visible in light mode */
-        [data-testid="stSidebar"] .stButton > button {
-            background-color: #d8d8d8 !important;
-            color: #000000 !important;
-            border: 2px solid #888 !important;
-            font-weight: 600 !important;
-            width: 100% !important;
-            min-width: 100% !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton {
-            width: 100% !important;
-        }
-        
-        [data-testid="stSidebar"] [data-testid="column"] {
-            width: 50% !important;
-            flex: 1 1 50% !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button:hover {
-            background-color: #c0c0c0 !important;
-            color: #000000 !important;
-            border-color: #555 !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button[kind="primary"],
-        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] {
-            background-color: #ff4b4b !important;
-            color: #ffffff !important;
-            border: 2px solid #cc0000 !important;
-            width: 100% !important;
-        }
-        
-        /* Button text visibility - FORCE black text on all button elements */
-        .stButton > button *,
-        [data-testid="stSidebar"] .stButton > button *,
-        [data-testid="stSidebar"] .stButton > button p,
-        [data-testid="stSidebar"] .stButton > button span,
-        [data-testid="stSidebar"] .stButton > button div,
-        [data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"],
-        [data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"] p {
-            color: #000000 !important;
-        }
-        
-        [data-testid="stSidebar"] .stButton > button[kind="primary"] *,
-        [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] *,
-        .stButton > button[kind="primary"] *,
-        .stButton > button[data-testid="baseButton-primary"] * {
-            color: #ffffff !important;
-        }
-        
-        /* Disabled buttons - ensure visible in light mode */
-        .stButton > button:disabled,
-        .stButton > button[disabled] {
-            background-color: #e0e0e0 !important;
-            color: #888888 !important;
-            border: 1px solid #bbb !important;
-            opacity: 0.7 !important;
-            cursor: not-allowed !important;
-        }
-        
-        .stButton > button:disabled *,
-        .stButton > button[disabled] * {
-            color: #888888 !important;
-            -webkit-text-fill-color: #888888 !important;
-        }
-        
-        /* Radio buttons / tabs */
-        .stRadio > div > label {
-            background: #f0f2f6 !important;
-            color: #262730 !important;
-        }
-        
-        .stRadio > div > label:hover {
-            background: #e0e2e6 !important;
-        }
+        /* Hide radio circles */
+        .stRadio input[type="radio"], .stRadio > div > label > div:first-child, .stRadio [data-baseweb="radio"] > div:first-child { display: none !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
         
         /* Expanders */
-        .streamlit-expanderHeader {
-            background-color: #f0f2f6 !important;
-            color: #262730 !important;
-        }
+        .streamlit-expanderHeader { background-color: #f0f2f6 !important; color: #262730 !important; }
+        .streamlit-expanderContent { background-color: #ffffff !important; }
         
-        .streamlit-expanderContent {
-            background-color: #ffffff !important;
-        }
+        /* Data frames/Tables */
+        .stDataFrame, .stDataFrame td, .stDataFrame th, table, tr, td, th, .stTable, .stTable td, .stTable th { background-color: #ffffff !important; color: #262730 !important; border-color: #ddd !important; }
+        [data-testid="stDataFrame"], [data-testid="stDataFrame"] > div, [data-testid="stDataFrame"] iframe { background-color: #ffffff !important; }
+        .dvn-scroller, .gdg-style, [class*="glideDataEditor"], [data-testid="stDataFrame"] [class*="cell"], [data-testid="stDataFrame"] [role="gridcell"], [data-testid="stDataFrame"] [role="columnheader"] { background-color: #ffffff !important; color: #262730 !important; }
+        [data-testid="stDataFrame"] span, [data-testid="stDataFrame"] div { color: #262730 !important; }
         
-        /* Data frames */
-        .stDataFrame, .stDataFrame td, .stDataFrame th {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
+        /* Toggle */
+        .stToggle > label > div, [data-baseweb="checkbox"] > div:first-child { background-color: #ccc !important; border: 2px solid #999 !important; }
+        .stToggle > label > div[data-checked="true"], [data-baseweb="checkbox"] > div:first-child[aria-checked="true"], [role="checkbox"][aria-checked="true"] { background-color: #ff4b4b !important; border-color: #ff4b4b !important; }
+        [data-baseweb="checkbox"] > div:first-child > div, .stToggle > label > div > div { background-color: #ffffff !important; }
         
-        /* Toggle switch - make visible in light mode */
-        [data-testid="stSidebar"] .stCheckbox > label[data-baseweb="checkbox"] > span:first-child,
-        .stToggle > label > div,
-        [data-testid="stWidgetLabel"] + div [role="checkbox"],
-        [data-baseweb="checkbox"] > div:first-child {
-            background-color: #ccc !important;
-            border: 2px solid #999 !important;
-        }
+        /* Number inputs */
+        .stNumberInput button, .stNumberInput [data-testid="stNumberInputStepUp"], .stNumberInput [data-testid="stNumberInputStepDown"] { background-color: #f0f2f6 !important; color: #262730 !important; border-color: #ddd !important; }
+        .stNumberInput button:hover { background-color: #e0e2e6 !important; }
+        .stNumberInput button svg { fill: #262730 !important; stroke: #262730 !important; }
         
-        .stToggle > label > div[data-checked="true"],
-        [data-testid="stSidebar"] [data-baseweb="checkbox"] [data-checked="true"],
-        [data-baseweb="checkbox"] > div:first-child[aria-checked="true"],
-        [role="checkbox"][aria-checked="true"] {
-            background-color: #ff4b4b !important;
-            border-color: #ff4b4b !important;
-        }
+        /* Tabs */
+        .stTabs [data-baseweb="tab-list"], .stTabs [data-baseweb="tab"] { background-color: #f0f2f6 !important; color: #262730 !important; }
+        .stTabs [data-baseweb="tab"]:hover { background-color: #e0e2e6 !important; }
+        .stTabs [aria-selected="true"] { background-color: #ffffff !important; color: #262730 !important; }
         
-        /* Toggle thumb/knob */
-        [data-baseweb="checkbox"] > div:first-child > div,
-        .stToggle > label > div > div {
-            background-color: #ffffff !important;
-        }
+        /* Containers */
+        [data-testid="stVerticalBlock"], [data-testid="stHorizontalBlock"], .element-container, .stMarkdown, [data-testid="column"] { background-color: transparent !important; }
+        [data-testid="stMetric"], [data-testid="stMetricValue"], [data-testid="stMetricLabel"], [data-testid="stMetricDelta"] { background-color: transparent !important; color: #262730 !important; }
         
-        /* Toggle label text */
-        .stToggle label span,
-        [data-testid="stWidgetLabel"] {
-            color: #262730 !important;
-            font-size: 1.2rem !important;
-        }
+        /* Charts */
+        .stPlotlyChart, .js-plotly-plot, .plotly, .plot-container, .vega-embed, [data-testid="stVegaLiteChart"] { background-color: #ffffff !important; }
+        .js-plotly-plot .plotly .bg { fill: #ffffff !important; }
+        .vega-embed .vega-bindings { color: #262730 !important; }
         
-        /* ===== NUMBER INPUT - Plus/Minus buttons ===== */
-        .stNumberInput button,
-        .stNumberInput [data-testid="stNumberInputStepUp"],
-        .stNumberInput [data-testid="stNumberInputStepDown"] {
-            background-color: #f0f2f6 !important;
-            color: #262730 !important;
-            border-color: #ddd !important;
-        }
-        
-        .stNumberInput button:hover {
-            background-color: #e0e2e6 !important;
-        }
-        
-        .stNumberInput button svg,
-        .stNumberInput [data-testid="stNumberInputStepUp"] svg,
-        .stNumberInput [data-testid="stNumberInputStepDown"] svg {
-            fill: #262730 !important;
-            stroke: #262730 !important;
-        }
-        
-        .stNumberInput > div > div > input {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        
-        /* ===== RADIO BUTTONS - Tab style ===== */
-        .stRadio [role="radiogroup"],
-        .stRadio > div {
-            background-color: transparent !important;
-        }
-        
-        .stRadio [role="radio"],
-        .stRadio > div > label,
-        .stRadio > div > div > label {
-            background-color: #f0f2f6 !important;
-            color: #262730 !important;
-            border-color: #ddd !important;
-        }
-        
-        .stRadio [role="radio"]:hover,
-        .stRadio > div > label:hover {
-            background-color: #e0e2e6 !important;
-        }
-        
-        .stRadio [role="radio"][aria-checked="true"],
-        .stRadio > div > label[data-checked="true"],
-        .stRadio > div > label:has(input:checked) {
-            background-color: #ff4b4b !important;
-            color: #ffffff !important;
-        }
-        
-        /* Radio button circles - HIDE them */
-        .stRadio input[type="radio"],
-        .stRadio > div > label > div:first-child,
-        .stRadio [data-baseweb="radio"] > div:first-child,
-        .stRadio [data-testid="stMarkdownContainer"]:has(input[type="radio"]) > div:first-child {
-            display: none !important;
-            visibility: hidden !important;
-            width: 0 !important;
-            height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* ===== TABS ===== */
-        .stTabs [data-baseweb="tab-list"] {
-            background-color: #f0f2f6 !important;
-        }
-        
-        .stTabs [data-baseweb="tab"] {
-            background-color: #f0f2f6 !important;
-            color: #262730 !important;
-        }
-        
-        .stTabs [data-baseweb="tab"]:hover {
-            background-color: #e0e2e6 !important;
-        }
-        
-        .stTabs [aria-selected="true"] {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        
-        /* ===== MAIN CONTENT CONTAINERS ===== */
-        [data-testid="stVerticalBlock"],
-        [data-testid="stHorizontalBlock"],
-        .element-container,
-        .stMarkdown,
-        [data-testid="column"] {
-            background-color: transparent !important;
-        }
-        
-        /* ===== METRIC / SCORE DISPLAYS ===== */
-        [data-testid="stMetric"],
-        [data-testid="stMetricValue"],
-        [data-testid="stMetricLabel"],
-        [data-testid="stMetricDelta"] {
-            background-color: transparent !important;
-            color: #262730 !important;
-        }
-        
-        /* ===== CHARTS / PLOTLY ===== */
-        .stPlotlyChart,
-        .js-plotly-plot,
-        .plotly,
-        .plot-container {
-            background-color: #ffffff !important;
-        }
-        
-        .js-plotly-plot .plotly .bg {
-            fill: #ffffff !important;
-        }
-        
-        /* ===== TABLES / DATAFRAMES ===== */
-        table, tr, td, th,
-        .stTable, .stTable td, .stTable th {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-            border-color: #ddd !important;
-        }
-        
-        /* Streamlit Dataframe specific */
-        .stDataFrame,
-        [data-testid="stDataFrame"],
-        [data-testid="stDataFrame"] > div,
-        [data-testid="stDataFrame"] iframe {
-            background-color: #ffffff !important;
-        }
-        
-        /* Glide Data Grid (used by st.dataframe) */
-        .dvn-scroller,
-        .gdg-style,
-        [class*="glideDataEditor"],
-        [data-testid="stDataFrame"] [class*="cell"],
-        [data-testid="stDataFrame"] [role="gridcell"],
-        [data-testid="stDataFrame"] [role="columnheader"] {
-            background-color: #ffffff !important;
-            color: #262730 !important;
-        }
-        
-        /* Ensure dataframe text is visible */
-        [data-testid="stDataFrame"] span,
-        [data-testid="stDataFrame"] div {
-            color: #262730 !important;
-        }
-        
-        /* Altair / Vega charts */
-        .vega-embed,
-        .vega-embed .chart-wrapper,
-        [data-testid="stVegaLiteChart"],
-        [data-testid="stVegaLiteChart"] > div {
-            background-color: #ffffff !important;
-        }
-        
-        .vega-embed .vega-bindings {
-            color: #262730 !important;
-        }
-        
-        /* ===== CARDS / CONTAINERS ===== */
-        .stContainer,
-        [data-testid="stExpander"],
-        [data-testid="stForm"] {
-            background-color: #ffffff !important;
-        }
+        .stContainer, [data-testid="stExpander"], [data-testid="stForm"] { background-color: #ffffff !important; }
     </style>
     """
 
 st.markdown(theme_css, unsafe_allow_html=True)
 
+# Always-applied CSS (layout, sizing, touch targets)
 st.markdown("""
 <style>
-    /* ===== SIDEBAR COLLAPSE BUTTON - Always visible ===== */
-    [data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapseButton"],
-    button[kind="header"],
-    [data-testid="baseButton-header"] {
-        opacity: 1 !important;
-        visibility: visible !important;
-        display: flex !important;
+    /* ===== SIDEBAR COLLAPSE BUTTON ===== */
+    [data-testid="collapsedControl"], [data-testid="stSidebarCollapseButton"], button[kind="header"], [data-testid="baseButton-header"],
+    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"], [data-testid="stSidebarNav"] button, section[data-testid="stSidebar"] > div:first-child button {
+        opacity: 1 !important; visibility: visible !important; display: flex !important;
     }
     
-    /* Make sure the collapse arrow is always visible */
-    [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebarNav"] button,
-    section[data-testid="stSidebar"] > div:first-child button {
-        opacity: 1 !important;
-        visibility: visible !important;
-    }
+    /* ===== BUTTONS ===== */
+    .stButton > button { min-height: 54px !important; font-size: 1.1rem !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; margin: 6px 0 !important; font-weight: 500 !important; color: var(--text-primary, inherit) !important; }
+    .stButton > button[kind="primary"], .stButton > button[data-testid="baseButton-primary"] { min-height: 60px !important; font-size: 1.25rem !important; font-weight: 600 !important; color: white !important; }
+    .stButton > button[kind="secondary"], .stButton > button[data-testid="baseButton-secondary"] { color: var(--text-primary, inherit) !important; background: var(--bg-secondary, #f0f2f6) !important; border: 1px solid var(--border-color, #ddd) !important; }
+    .stButton > button[kind="secondary"]:hover { background: var(--bg-hover, #e0e2e6) !important; }
+    button:active, .stButton > button:active { transform: scale(0.97) !important; transition: transform 0.1s !important; }
     
-    /* ===== BUTTONS - Larger touch targets ===== */
-    .stButton > button {
-        min-height: 54px !important;
-        font-size: 1.1rem !important;
-        padding: 0.75rem 1.5rem !important;
-        border-radius: 12px !important;
-        margin: 6px 0 !important;
-        font-weight: 500 !important;
-    }
+    /* ===== NUMBER INPUTS ===== */
+    .stNumberInput > div > div > input { font-size: 1.5rem !important; height: 54px !important; text-align: center !important; font-weight: 600 !important; color: var(--text-primary, inherit) !important; }
+    .stNumberInput button { min-width: 48px !important; min-height: 48px !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 !important; }
+    .stNumberInput button svg { width: 18px !important; height: 18px !important; position: relative !important; top: -5px !important; }
+    .stNumberInput [data-testid="stNumberInputStepUp"], .stNumberInput [data-testid="stNumberInputStepDown"] { width: 48px !important; height: 48px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
     
-    /* Primary buttons even more prominent */
-    .stButton > button[kind="primary"],
-    .stButton > button[data-testid="baseButton-primary"] {
-        min-height: 60px !important;
-        font-size: 1.25rem !important;
-        font-weight: 600 !important;
-    }
-    
-    /* ===== NUMBER INPUTS - Larger steppers ===== */
-    .stNumberInput > div > div > input {
-        font-size: 1.5rem !important;
-        height: 54px !important;
-        text-align: center !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Make +/- stepper buttons properly sized and centered */
-    .stNumberInput button {
-        min-width: 48px !important;
-        min-height: 48px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 0 !important;
-    }
-    
-    .stNumberInput button svg {
-        width: 18px !important;
-        height: 18px !important;
-        position: relative !important;
-        top: -5px !important;
-    }
-    
-    .stNumberInput [data-testid="stNumberInputStepUp"],
-    .stNumberInput [data-testid="stNumberInputStepDown"] {
-        width: 48px !important;
-        height: 48px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    /* ===== RADIO BUTTONS - Tab navigation ===== */
-    .stRadio > div {
-        gap: 8px !important;
-    }
-    
-    .stRadio > div > label {
-        padding: 14px 24px !important;
-        font-size: 1.15rem !important;
-        border-radius: 12px !important;
-        min-height: 52px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        background: var(--bg-secondary, #f0f2f6) !important;
-        border: 2px solid transparent !important;
-        transition: all 0.15s ease !important;
-        font-weight: 500 !important;
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    .stRadio > div > label:hover {
-        background: var(--bg-hover, #e0e2e6) !important;
-        transform: scale(1.02) !important;
-    }
-    
-    .stRadio > div > label[data-checked="true"],
-    .stRadio > div > label:has(input:checked) {
-        background: #ff4b4b !important;
-        color: white !important;
-        border-color: #ff4b4b !important;
-    }
+    /* ===== RADIO BUTTONS (Tab Style) ===== */
+    .stRadio > div { gap: 8px !important; }
+    .stRadio > div > label { padding: 14px 24px !important; font-size: 1.15rem !important; border-radius: 12px !important; min-height: 52px !important; display: flex !important; align-items: center !important; justify-content: center !important; background: var(--bg-secondary, #f0f2f6) !important; border: 2px solid transparent !important; transition: all 0.15s ease !important; font-weight: 500 !important; color: var(--text-primary, inherit) !important; }
+    .stRadio > div > label:hover { background: var(--bg-hover, #e0e2e6) !important; transform: scale(1.02) !important; }
+    .stRadio > div > label[data-checked="true"], .stRadio > div > label:has(input:checked) { background: #ff4b4b !important; color: white !important; border-color: #ff4b4b !important; }
     
     /* ===== SELECT BOXES ===== */
-    .stSelectbox > div > div {
-        min-height: 52px !important;
-        font-size: 1.1rem !important;
-    }
-    
-    .stSelectbox [data-baseweb="select"] {
-        min-height: 52px !important;
-    }
+    .stSelectbox > div > div { min-height: 52px !important; font-size: 1.1rem !important; color: var(--text-primary, inherit) !important; }
+    .stSelectbox [data-baseweb="select"] { min-height: 52px !important; }
     
     /* ===== TEXT INPUTS ===== */
-    .stTextInput > div > div > input {
-        min-height: 52px !important;
-        font-size: 1.1rem !important;
-        padding: 0 12px !important;
-        line-height: 52px !important;
-        display: flex !important;
-        align-items: center !important;
-    }
+    .stTextInput > div > div > input { min-height: 52px !important; font-size: 1.1rem !important; padding: 0 12px !important; line-height: 52px !important; display: flex !important; align-items: center !important; color: var(--text-primary, inherit) !important; }
+    [data-testid="stSidebar"] .stTextInput > div > div > input { min-height: 44px !important; height: 44px !important; padding: 0 12px !important; padding-bottom: 4px !important; line-height: 40px !important; }
     
-    /* Sidebar text input vertical centering */
-    [data-testid="stSidebar"] .stTextInput > div > div > input {
-        min-height: 44px !important;
-        height: 44px !important;
-        padding: 0 12px !important;
-        padding-bottom: 4px !important;
-        line-height: 40px !important;
-    }
-    
-    /* ===== API KEY SAVE BUTTON - Touch optimized ===== */
-    [data-testid="stSidebar"] button[kind="secondary"]:has(p:contains("💾")),
-    [data-testid="stSidebar"] .stButton > button {
-        min-height: 44px !important;
-        min-width: 44px !important;
-        font-size: 1.3rem !important;
-        padding: 8px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    /* ===== CHECKBOXES - Larger tap targets ===== */
-    .stCheckbox > label {
-        padding: 10px 0 !important;
-        min-height: 48px !important;
-        display: flex !important;
-        align-items: center !important;
-    }
-    
-    .stCheckbox > label > span {
-        font-size: 1.1rem !important;
-    }
-    
-    .stCheckbox > label > div[data-testid="stCheckbox"] {
-        width: 26px !important;
-        height: 26px !important;
-    }
+    /* ===== CHECKBOXES ===== */
+    .stCheckbox > label { padding: 10px 0 !important; min-height: 48px !important; display: flex !important; align-items: center !important; }
+    .stCheckbox > label > span { font-size: 1.1rem !important; }
+    .stCheckbox > label > div[data-testid="stCheckbox"] { width: 26px !important; height: 26px !important; }
     
     /* ===== EXPANDERS ===== */
-    .streamlit-expanderHeader {
-        font-size: 1.15rem !important;
-        min-height: 52px !important;
-        padding: 12px !important;
-    }
+    .streamlit-expanderHeader { font-size: 1.15rem !important; min-height: 52px !important; padding: 12px !important; color: var(--text-primary, inherit) !important; }
     
-    /* ===== SPACING & LAYOUT ===== */
-    [data-testid="column"] {
-        padding: 0 10px !important;
-    }
+    /* ===== LAYOUT ===== */
+    [data-testid="column"] { padding: 0 10px !important; }
+    .stForm > div > div { margin-bottom: 1rem !important; }
+    .block-container { padding: 1rem 2rem 3rem 2rem !important; }
     
-    /* More space between form elements */
-    .stForm > div > div {
-        margin-bottom: 1rem !important;
-    }
-    
-    /* ===== SUBHEADERS & TEXT ===== */
-    h2, .stSubheader {
-        font-size: 1.6rem !important;
-        margin-top: 1.5rem !important;
-    }
-    
-    h3 {
-        font-size: 1.3rem !important;
-    }
-    
-    /* Player name labels larger */
-    .stNumberInput label, .stTextInput label {
-        font-size: 1.1rem !important;
-        font-weight: 600 !important;
-    }
-    
-    /* ===== TOUCH FEEDBACK ===== */
-    button:active, .stButton > button:active {
-        transform: scale(0.97) !important;
-        transition: transform 0.1s !important;
-    }
+    /* ===== TYPOGRAPHY ===== */
+    h2, .stSubheader { font-size: 1.6rem !important; margin-top: 1.5rem !important; }
+    h3 { font-size: 1.3rem !important; }
+    .stNumberInput label, .stTextInput label, .stSelectbox label { font-size: 1.1rem !important; font-weight: 600 !important; color: var(--text-primary, inherit) !important; }
+    .stMarkdown, .stText, p, span, label { color: var(--text-primary, inherit) !important; }
+    .stCaption, [data-testid="stCaption"] { color: var(--text-secondary, #555) !important; }
     
     /* ===== DATA TABLES ===== */
-    .stDataFrame td, .stDataFrame th {
-        font-size: 1rem !important;
-        padding: 12px 8px !important;
-    }
+    .stDataFrame td, .stDataFrame th { font-size: 1rem !important; padding: 12px 8px !important; }
     
-    /* ===== ALERTS & INFO BOXES ===== */
-    .stAlert, .stInfo, .stWarning, .stSuccess, .stError {
-        padding: 16px !important;
-        font-size: 1.05rem !important;
-        border-radius: 10px !important;
-    }
+    /* ===== ALERTS ===== */
+    .stAlert, .stInfo, .stWarning, .stSuccess, .stError { padding: 16px !important; font-size: 1.05rem !important; border-radius: 10px !important; }
+    .stAlert p, .stInfo p, .stWarning p, .stSuccess p, .stError p { color: inherit !important; }
     
-    /* ===== DIALOG/MODAL BUTTONS ===== */
-    [data-testid="stModal"] button {
-        min-height: 50px !important;
-        min-width: 50px !important;
-    }
+    /* ===== MODALS ===== */
+    [data-testid="stModal"] button { min-height: 50px !important; min-width: 50px !important; }
     
-    /* ===== COLOR PICKER ===== */
-    .stColorPicker > div {
-        min-height: 48px !important;
-    }
-    
-    /* ===== SLIDER ===== */
-    .stSlider > div {
-        padding: 10px 0 !important;
-    }
-    
-    .stSlider [data-testid="stThumbValue"] {
-        font-size: 1.1rem !important;
-    }
-    
-    /* ===== TABS CONTAINER PADDING ===== */
-    .block-container {
-        padding: 1rem 2rem 3rem 2rem !important;
-    }
+    /* ===== SLIDERS ===== */
+    .stSlider > div { padding: 10px 0 !important; }
+    .stSlider [data-testid="stThumbValue"] { font-size: 1.1rem !important; }
     
     /* ===== DOWNLOAD BUTTON ===== */
-    .stDownloadButton > button {
-        min-height: 54px !important;
-        font-size: 1.1rem !important;
-    }
+    .stDownloadButton > button { min-height: 54px !important; font-size: 1.1rem !important; }
     
-    /* ===== SIDEBAR PLAYER ROW - Vertical centering ===== */
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
-        align-items: center !important;
-    }
+    /* ===== COLOR PICKER ===== */
+    .stColorPicker > div { min-height: 48px !important; }
+    [data-testid="stSidebar"] .stColorPicker { margin: 0 !important; padding: 0 !important; }
+    [data-testid="stSidebar"] .stColorPicker > div { min-height: 36px !important; height: 36px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+    [data-testid="stSidebar"] .stColorPicker label { display: none !important; }
     
-    [data-testid="stSidebar"] [data-testid="column"] {
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-        align-items: center !important;
-    }
+    /* ===== SIDEBAR LAYOUT ===== */
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] { align-items: center !important; }
+    [data-testid="stSidebar"] [data-testid="column"] { display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; }
+    [data-testid="stSidebar"] * { color: var(--text-primary, inherit); }
+    .player-name-cell { display: flex !important; align-items: center !important; height: 36px !important; font-weight: 500 !important; margin: 0 !important; padding: 0 !important; }
     
-    /* Player name text centering */
-    .player-name-cell {
-        display: flex !important;
-        align-items: center !important;
-        height: 36px !important;
-        font-weight: 500 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
+    /* Sidebar button sizing */
+    [data-testid="stSidebar"] button[kind="secondary"]:has(p:contains("💾")), [data-testid="stSidebar"] .stButton > button { min-height: 44px !important; min-width: 44px !important; font-size: 1.3rem !important; padding: 8px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+    [data-testid="stSidebar"] [data-testid="column"] .stButton { display: flex !important; justify-content: center !important; align-items: center !important; margin: 0 !important; padding: 0 !important; width: auto !important; max-width: none !important; }
+    [data-testid="stSidebar"] [data-testid="column"] .stButton > button:not([data-baseweb="button"]) { min-height: 36px !important; min-width: 36px !important; }
     
-    /* Sidebar color picker adjustments */
-    [data-testid="stSidebar"] .stColorPicker {
-        margin: 0 !important;
-        padding: 0 !important;
-    }
+    /* Sidebar horizontal button layout */
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton { width: 100% !important; flex: 1 !important; }
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton > button { height: 44px !important; min-height: 44px !important; max-height: 44px !important; width: 100% !important; min-width: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; box-sizing: border-box !important; }
+    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"] { flex: 1 1 0 !important; width: 0 !important; min-width: 0 !important; }
     
-    [data-testid="stSidebar"] .stColorPicker > div {
-        min-height: 36px !important;
-        height: 36px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    [data-testid="stSidebar"] .stColorPicker label {
-        display: none !important;
-    }
-    
-    /* Sidebar button adjustments for player row */
-    [data-testid="stSidebar"] [data-testid="column"] .stButton {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: auto !important;
-        max-width: none !important;
-    }
-    
-    /* Small buttons in sidebar (like remove player X buttons) */
-    [data-testid="stSidebar"] [data-testid="column"] .stButton > button:not([data-baseweb="button"]) {
-        min-height: 36px !important;
-        min-width: 36px !important;
-    }
-    
-    /* Full-width sidebar buttons in columns - ALL buttons get consistent height and width */
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton {
-        width: 100% !important;
-        flex: 1 !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] .stButton > button {
-        height: 44px !important;
-        min-height: 44px !important;
-        max-height: 44px !important;
-        width: 100% !important;
-        min-width: 100% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        box-sizing: border-box !important;
-    }
-    
-    /* Ensure columns in horizontal blocks are equal width */
-    [data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-        flex: 1 1 0 !important;
-        width: 0 !important;
-        min-width: 0 !important;
-    }
-    
-    /* Override max-width on ALL button inner elements */
-    [data-testid="stSidebar"] [data-testid="column"] .stButton > button > div {
-        max-width: none !important;
-        width: auto !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        flex: none !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="column"] .stButton > button > div > p {
-        max-width: none !important;
-        width: auto !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        text-align: center !important;
-        flex: none !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="column"] .stButton > button p {
-        max-width: unset !important;
-    }
-    
-    /* Fix for stMarkdownContainer inside buttons - the element causing width: 100% issue */
-    [data-testid="stSidebar"] [data-testid="column"] .stButton [data-testid="stMarkdownContainer"],
-    [data-testid="stSidebar"] [data-testid="column"] .stButton button div[data-testid="stMarkdownContainer"],
-    [data-testid="stSidebar"] .stButton [data-testid="stMarkdownContainer"],
-    .stButton [data-testid="stMarkdownContainer"] {
-        width: auto !important;
-        max-width: none !important;
-        min-width: 0 !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="column"] .stButton [data-testid="stMarkdownContainer"] p,
-    [data-testid="stSidebar"] .stButton [data-testid="stMarkdownContainer"] p,
-    .stButton [data-testid="stMarkdownContainer"] p {
-        width: auto !important;
-        max-width: none !important;
-        margin: 0 !important;
-        text-align: center !important;
-    }
-    
-    /* Direct class targeting for emotion-cache containers in buttons */
-    [data-testid="stSidebar"] [data-testid="column"] .stButton button div[class*="emotion-cache"] {
-        width: auto !important;
-        max-width: none !important;
-    }
-    
-    /* ===== THEME-AWARE TEXT & CONTRAST ===== */
-    /* Ensure text is readable on both light and dark backgrounds */
-    .stMarkdown, .stText, p, span, label {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Button text should always have good contrast */
-    .stButton > button {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Primary buttons always white text on red */
-    .stButton > button[kind="primary"],
-    .stButton > button[data-testid="baseButton-primary"] {
-        color: white !important;
-    }
-    
-    /* Secondary buttons theme-aware */
-    .stButton > button[kind="secondary"],
-    .stButton > button[data-testid="baseButton-secondary"] {
-        color: var(--text-primary, inherit) !important;
-        background: var(--bg-secondary, #f0f2f6) !important;
-        border: 1px solid var(--border-color, #ddd) !important;
-    }
-    
-    .stButton > button[kind="secondary"]:hover,
-    .stButton > button[data-testid="baseButton-secondary"]:hover {
-        background: var(--bg-hover, #e0e2e6) !important;
-    }
-    
-    /* Number input text visibility */
-    .stNumberInput > div > div > input {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Text input visibility */
-    .stTextInput > div > div > input {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Select box text visibility */
-    .stSelectbox > div > div {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Labels and headers */
-    .stNumberInput label, .stTextInput label, .stSelectbox label {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Alerts maintain their own colors but ensure text is visible */
-    .stAlert p, .stInfo p, .stWarning p, .stSuccess p, .stError p {
-        color: inherit !important;
-    }
-    
-    /* Expander header text */
-    .streamlit-expanderHeader {
-        color: var(--text-primary, inherit) !important;
-    }
-    
-    /* Sidebar text */
-    [data-testid="stSidebar"] * {
-        color: var(--text-primary, inherit);
-    }
-    
-    /* Caption text slightly muted */
-    .stCaption, [data-testid="stCaption"] {
-        color: var(--text-secondary, #555) !important;
-    }
+    /* Button inner element fixes */
+    [data-testid="stSidebar"] [data-testid="column"] .stButton > button > div, [data-testid="stSidebar"] [data-testid="column"] .stButton > button > div > p, [data-testid="stSidebar"] [data-testid="column"] .stButton > button p { max-width: none !important; width: auto !important; margin: 0 !important; padding: 0 !important; text-align: center !important; display: flex !important; align-items: center !important; justify-content: center !important; flex: none !important; }
+    .stButton [data-testid="stMarkdownContainer"], [data-testid="stSidebar"] .stButton [data-testid="stMarkdownContainer"] { width: auto !important; max-width: none !important; min-width: 0 !important; display: flex !important; justify-content: center !important; align-items: center !important; }
+    .stButton [data-testid="stMarkdownContainer"] p, [data-testid="stSidebar"] .stButton [data-testid="stMarkdownContainer"] p { width: auto !important; max-width: none !important; margin: 0 !important; text-align: center !important; }
+    [data-testid="stSidebar"] [data-testid="column"] .stButton button div[class*="emotion-cache"] { width: auto !important; max-width: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1257,54 +390,50 @@ DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 # Default colors for new players
 DEFAULT_COLORS = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F"]
 
-# Initialize session state
-if 'players' not in st.session_state:
-    st.session_state.players = []
-if 'current_round' not in st.session_state:
-    st.session_state.current_round = 1
-if 'game_data' not in st.session_state:
-    st.session_state.game_data = {}  # {round: {player: {'bid': x, 'tricks': y}}}
-if 'game_started' not in st.session_state:
-    st.session_state.game_started = False
-if 'max_rounds' not in st.session_state:
-    st.session_state.max_rounds = 0
-if 'current_save_file' not in st.session_state:
-    st.session_state.current_save_file = None
-if 'player_colors' not in st.session_state:
-    st.session_state.player_colors = {}  # {player_name: hex_color}
-if 'active_tab' not in st.session_state:
-    st.session_state.active_tab = 0  # 0=Bids, 1=Tricks, 2=Scoreboard
-if 'starting_dealer_index' not in st.session_state:
-    st.session_state.starting_dealer_index = 0  # Index of dealer for round 1
-if 'shot_players' not in st.session_state:
-    st.session_state.shot_players = []  # Players who need to take a shot
-if 'round_roasts' not in st.session_state:
-    st.session_state.round_roasts = {}  # {round_num: roast_text}
-if 'api_provider' not in st.session_state:
-    st.session_state.api_provider = DEFAULT_PROVIDER
+# Default player round data structure
+EMPTY_ROUND_DATA = {'bid': None, 'tricks': None}
+
+# Initialize session state with defaults (dark_mode initialized earlier before CSS)
+SESSION_DEFAULTS = {
+    'players': [], 'current_round': 1, 'game_data': {}, 'game_started': False,
+    'max_rounds': 0, 'current_save_file': None, 'player_colors': {}, 'active_tab': 0,
+    'starting_dealer_index': 0, 'shot_players': [], 'round_roasts': {},
+    'api_provider': DEFAULT_PROVIDER, 'enable_roasts': False, 'api_verified': False,
+    'selected_nvidia_model': DEFAULT_NVIDIA_MODEL, 'selected_gemini_model': DEFAULT_GEMINI_MODEL,
+    'game_finished': False, 'show_celebration': False, 'manual_roast': {},
+    'game_summary': None, 'game_stats': None,
+}
+for key, default in SESSION_DEFAULTS.items():
+    if key not in st.session_state:
+        st.session_state[key] = default
+# Load API keys if not already loaded
 if 'nvidia_api_key' not in st.session_state:
     st.session_state.nvidia_api_key = load_saved_api_key("nvidia")
 if 'gemini_api_key' not in st.session_state:
     st.session_state.gemini_api_key = load_saved_api_key("gemini")
-if 'enable_roasts' not in st.session_state:
-    st.session_state.enable_roasts = False
-if 'api_verified' not in st.session_state:
-    st.session_state.api_verified = False
-if 'selected_nvidia_model' not in st.session_state:
-    st.session_state.selected_nvidia_model = DEFAULT_NVIDIA_MODEL
-if 'selected_gemini_model' not in st.session_state:
-    st.session_state.selected_gemini_model = DEFAULT_GEMINI_MODEL
-if 'game_finished' not in st.session_state:
-    st.session_state.game_finished = False
-if 'show_celebration' not in st.session_state:
-    st.session_state.show_celebration = False
-if 'manual_roast' not in st.session_state:
-    st.session_state.manual_roast = {}  # For on-demand roasts {player: roast}
-if 'game_summary' not in st.session_state:
-    st.session_state.game_summary = None  # LLM-generated end-game summary
-if 'game_stats' not in st.session_state:
-    st.session_state.game_stats = None  # Analyzed game statistics
-# dark_mode is initialized early (before CSS)
+
+def get_theme_colors():
+    """Return theme-aware colors based on current dark_mode setting."""
+    if st.session_state.dark_mode:
+        return {
+            'bg_primary': '#0e1117', 'bg_secondary': '#262730', 'bg_hover': '#3d3d4d',
+            'text_primary': '#fafafa', 'text_secondary': '#ccc', 'border': '#444',
+            'popup_bg': 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+            'card_bg': 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)',
+            'roast_bg': 'linear-gradient(135deg, #2d1b69 0%, #11998e 100%)',
+            'banner_bg': 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+            'chart_grid': '#444', 'stat_text': '#98D8C8',
+        }
+    else:
+        return {
+            'bg_primary': '#ffffff', 'bg_secondary': '#f0f2f6', 'bg_hover': '#e0e2e6',
+            'text_primary': '#262730', 'text_secondary': '#555', 'border': '#ddd',
+            'popup_bg': 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%)',
+            'card_bg': 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)',
+            'roast_bg': 'linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)',
+            'banner_bg': 'linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%)',
+            'chart_grid': '#ddd', 'stat_text': '#495057',
+        }
 
 def calculate_score(bid, tricks):
     """Calculate score for a round based on bid and tricks won."""
@@ -1320,12 +449,48 @@ def get_total_scores():
     game_finished = st.session_state.get('game_finished', False)
     
     for round_num, round_data in st.session_state.game_data.items():
-        # Count rounds before the current round, OR all rounds if game is finished
         if round_num < current_round or game_finished:
             for player, data in round_data.items():
                 if data['bid'] is not None and data['tricks'] is not None:
                     totals[player] += calculate_score(data['bid'], data['tricks'])
     return totals
+
+def get_shot_players(round_num):
+    """Return list of players who need to take a shot (off by 2+ tricks)."""
+    shot_players = []
+    for player in st.session_state.players:
+        data = st.session_state.game_data.get(round_num, {}).get(player, EMPTY_ROUND_DATA)
+        bid, tricks = data.get('bid', 0) or 0, data.get('tricks', 0) or 0
+        if abs(bid - tricks) >= 2:
+            shot_players.append(player)
+    return shot_players
+
+def init_round_data(round_num):
+    """Initialize game data for a round if it doesn't exist."""
+    if round_num not in st.session_state.game_data:
+        st.session_state.game_data[round_num] = {
+            player: EMPTY_ROUND_DATA.copy() for player in st.session_state.players
+        }
+
+def generate_round_roast(round_num):
+    """Generate roast for a completed round and store it."""
+    if st.session_state.enable_roasts and st.session_state.api_verified:
+        roast = generate_roasts(round_num)
+        st.session_state.round_roasts[round_num] = roast if roast else "[No roast generated - API may have failed]"
+    elif st.session_state.enable_roasts:
+        st.session_state.round_roasts[round_num] = "[API not verified - please verify your API key]"
+
+def render_roast_popup(round_num, roast_text, theme):
+    """Render a roast popup with consistent styling."""
+    st.markdown(
+        f"""<div style='background: {theme['roast_bg']}; 
+                     padding: 20px; border-radius: 15px; border: 2px solid #f39c12; 
+                     margin: 10px 0; box-shadow: 0 0 15px #f39c12;'>
+            <h3 style='color: #f39c12; text-align: center; margin-bottom: 10px;'>🔥 Round {round_num} Roast 🔥</h3>
+            <p style='color: {theme['text_primary']}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
+            </div>""",
+        unsafe_allow_html=True
+    )
 
 def analyze_game_stats():
     """Analyze the full game and return comprehensive statistics."""
@@ -1341,7 +506,7 @@ def analyze_game_stats():
         if r in st.session_state.game_data:
             round_standing = {}
             for p in players:
-                data = st.session_state.game_data[r].get(p, {'bid': None, 'tricks': None})
+                data = st.session_state.game_data[r].get(p, EMPTY_ROUND_DATA)
                 bid = data['bid']
                 tricks = data['tricks']
                 if bid is not None and tricks is not None:
@@ -1681,7 +846,7 @@ def generate_roasts(round_num):
         
         for r in range(1, round_num + 1):
             if r in st.session_state.game_data and player in st.session_state.game_data[r]:
-                data = st.session_state.game_data[r].get(player, {'bid': None, 'tricks': None})
+                data = st.session_state.game_data[r].get(player, EMPTY_ROUND_DATA)
                 bid = data['bid']
                 tricks = data['tricks']
                 if bid is not None and tricks is not None:
@@ -1711,7 +876,7 @@ def generate_roasts(round_num):
     # Current round performance
     current_performances = []
     for player in st.session_state.players:
-        data = st.session_state.game_data[round_num].get(player, {'bid': None, 'tricks': None})
+        data = st.session_state.game_data[round_num].get(player, EMPTY_ROUND_DATA)
         bid = data['bid'] or 0
         tricks = data['tricks'] or 0
         diff = tricks - bid
@@ -1777,6 +942,7 @@ def save_game(title=None, filename=None):
         str(k): v for k, v in st.session_state.game_data.items()
     }
     
+    total_scores = get_total_scores()
     save_data = {
         "title": title,
         "players": st.session_state.players,
@@ -1787,7 +953,7 @@ def save_game(title=None, filename=None):
         "max_rounds": st.session_state.max_rounds,
         "game_started": st.session_state.game_started,
         "saved_at": datetime.now().isoformat(),
-        "total_scores": get_total_scores()
+        "total_scores": total_scores
     }
     
     filepath = SAVE_DIR / filename
@@ -1797,7 +963,7 @@ def save_game(title=None, filename=None):
         f.write(f"Saved: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Players: {', '.join(st.session_state.players)}\n")
         f.write(f"Round: {st.session_state.current_round} / {st.session_state.max_rounds}\n")
-        f.write(f"Scores: {get_total_scores()}\n")
+        f.write(f"Scores: {total_scores}\n")
         f.write("=" * 35 + "\n\n")
         f.write("--- JSON DATA (DO NOT EDIT BELOW) ---\n")
         f.write(json.dumps(save_data, indent=2))
@@ -1894,35 +1060,10 @@ def delete_save(filename):
     if filepath.exists():
         filepath.unlink()
 
-def reset_game():
-    """Reset the game to initial state."""
-    st.session_state.players = []
-    st.session_state.player_colors = {}
-    st.session_state.starting_dealer_index = 0
+def _clear_game_state():
+    """Clear game-specific state (used by reset and replay)."""
     st.session_state.current_round = 1
     st.session_state.game_data = {}
-    st.session_state.game_started = False
-    st.session_state.max_rounds = 0
-    st.session_state.current_save_file = None
-    st.session_state.game_finished = False
-    st.session_state.shot_players = []
-    st.session_state.round_roasts = {}
-    st.session_state.manual_roast = {}
-    st.session_state.game_summary = None
-    st.session_state.game_stats = None
-
-def replay_game_with_same_players():
-    """Start a new game with the same players."""
-    # Keep players and colors
-    players = st.session_state.players.copy()
-    colors = st.session_state.player_colors.copy()
-    starting_dealer = st.session_state.starting_dealer_index
-    
-    # Reset game state but preserve players
-    st.session_state.current_round = 1
-    st.session_state.game_data = {}
-    st.session_state.game_started = True
-    st.session_state.max_rounds = 60 // len(players)
     st.session_state.current_save_file = None
     st.session_state.game_finished = False
     st.session_state.shot_players = []
@@ -1931,17 +1072,33 @@ def replay_game_with_same_players():
     st.session_state.game_summary = None
     st.session_state.game_stats = None
     st.session_state.active_tab = 0
+
+def reset_game():
+    """Reset the game to initial state."""
+    _clear_game_state()
+    st.session_state.players = []
+    st.session_state.player_colors = {}
+    st.session_state.starting_dealer_index = 0
+    st.session_state.game_started = False
+    st.session_state.max_rounds = 0
+
+def replay_game_with_same_players():
+    """Start a new game with the same players."""
+    players = st.session_state.players.copy()
+    colors = st.session_state.player_colors.copy()
+    starting_dealer = st.session_state.starting_dealer_index
     
-    # Restore players
+    _clear_game_state()
     st.session_state.players = players
     st.session_state.player_colors = colors
     st.session_state.starting_dealer_index = starting_dealer
-    
-    # Initialize game data for round 1
-    st.session_state.game_data[1] = {
-        player: {'bid': None, 'tricks': None} 
-        for player in st.session_state.players
-    }
+    _start_game()
+
+def _start_game():
+    """Common logic to start a new game."""
+    st.session_state.game_started = True
+    st.session_state.max_rounds = 60 // len(st.session_state.players)
+    init_round_data(1)
 
 def rename_player(old_name, new_name):
     """Rename a player and update all references."""
@@ -2059,19 +1216,8 @@ with st.sidebar:
             st.session_state.starting_dealer_index = dealer_options.index(selected_dealer)
             
             if st.button("🎮 Start Game", type="primary"):
-                st.session_state.game_started = True
-                st.session_state.current_round = 1  # Reset to round 1
-                st.session_state.max_rounds = calculated_max_rounds
-                st.session_state.game_data = {}  # Clear any old game data
-                st.session_state.game_finished = False  # Reset game finished flag
-                st.session_state.shot_players = []  # Clear shot players
-                st.session_state.round_roasts = {}  # Clear roasts
-                st.session_state.active_tab = 0  # Start on Bids tab
-                # Initialize game data for round 1
-                st.session_state.game_data[1] = {
-                    player: {'bid': None, 'tricks': None} 
-                    for player in st.session_state.players
-                }
+                _clear_game_state()
+                _start_game()
                 st.rerun()
         else:
             st.warning("Need at least 3 players to start!")
@@ -2353,7 +1499,7 @@ if not st.session_state.game_started:
 
 else:
     # Current round input
-    st.header(f"📍 Round {st.session_state.current_round}")
+    st.header(f"📍 Round {st.session_state.current_round} of {st.session_state.max_rounds}")
     
     # Calculate current dealer (rotates each round)
     num_players = len(st.session_state.players)
@@ -2397,20 +1543,14 @@ else:
             
             # Display individual roasts in columns
             roast_cols = st.columns(len(st.session_state.players))
-            # Theme-aware roast card colors
-            if st.session_state.dark_mode:
-                roast_card_bg = "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)"
-                roast_card_text = "#FFFFFF"
-            else:
-                roast_card_bg = "linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)"
-                roast_card_text = "#262730"
+            theme = get_theme_colors()
             for i, player in enumerate(st.session_state.players):
                 player_color = st.session_state.player_colors.get(player, "#FF6B6B")
                 roast_text = st.session_state.manual_roast.get(player, "No roast available")
                 with roast_cols[i]:
                     st.markdown(
                         f"""
-                        <div style='background: {roast_card_bg}; 
+                        <div style='background: {theme['card_bg']}; 
                                     padding: 15px; border-radius: 15px; 
                                     border: 3px solid {player_color}; 
                                     margin: 5px 0; 
@@ -2419,7 +1559,7 @@ else:
                             <h3 style='color: {player_color}; text-align: center; margin: 0 0 10px 0;'>
                                 🔥 {player} 🔥
                             </h3>
-                            <p style='color: {roast_card_text}; text-align: center; font-size: 1.1em; font-style: italic; 
+                            <p style='color: {theme['text_primary']}; text-align: center; font-size: 1.1em; font-style: italic; 
                                       margin: 0; line-height: 1.4;'>
                                 "{roast_text}"
                             </p>
@@ -2480,7 +1620,7 @@ else:
         # Ensure current round exists in game data
         if current_round not in st.session_state.game_data:
             st.session_state.game_data[current_round] = {
-                player: {'bid': None, 'tricks': None} 
+                player: EMPTY_ROUND_DATA.copy() 
                 for player in st.session_state.players
             }
         
@@ -2615,40 +1755,20 @@ else:
                 tricks_valid = total_tricks == current_round
                 if tricks_valid:
                     if st.button("Next Round ➡️", type="primary", key="next_round_btn"):
-                        # Check for players who need to take a shot (off by 2+ tricks)
-                        shot_players = []
                         current_round_num = st.session_state.current_round
-                        for player in st.session_state.players:
-                            bid = st.session_state.game_data[current_round_num][player]['bid'] or 0
-                            tricks = st.session_state.game_data[current_round_num][player]['tricks'] or 0
-                            if abs(bid - tricks) >= 2:
-                                shot_players.append(player)
-                        
-                        st.session_state.shot_players = shot_players
+                        st.session_state.shot_players = get_shot_players(current_round_num)
                         
                         # Generate roast for this round before moving on
-                        if st.session_state.enable_roasts and st.session_state.nvidia_api_key and st.session_state.api_verified:
+                        if st.session_state.enable_roasts:
                             with st.spinner("🔥 Generating roasts... (this may take up to 90 seconds)"):
-                                roast = generate_roasts(current_round_num)
-                                st.session_state.round_roasts[current_round_num] = roast if roast else "[No roast generated - API may have failed]"
-                        elif st.session_state.enable_roasts and not st.session_state.api_verified:
-                            st.session_state.round_roasts[current_round_num] = "[API not verified - please verify your API key]"
+                                generate_round_roast(current_round_num)
                         
                         st.session_state.current_round += 1
-                        st.session_state.pending_tab = 0  # Switch to Bids tab on rerun
-                        # Initialize next round if needed
-                        if st.session_state.current_round not in st.session_state.game_data:
-                            st.session_state.game_data[st.session_state.current_round] = {
-                                player: {'bid': None, 'tricks': None} 
-                                for player in st.session_state.players
-                            }
+                        st.session_state.pending_tab = 0
+                        init_round_data(st.session_state.current_round)
                         
                         # Auto-save game after each round
-                        if st.session_state.current_save_file:
-                            save_game(filename=st.session_state.current_save_file)
-                        else:
-                            save_game()
-                        
+                        save_game(filename=st.session_state.current_save_file) if st.session_state.current_save_file else save_game()
                         st.rerun()
                 else:
                     st.button("Next Round ➡️", type="primary", disabled=True, key="next_round_btn_disabled")
@@ -2666,67 +1786,40 @@ else:
                 
                 if all_tricks_entered and all_bids_entered and not st.session_state.get('game_finished', False):
                     if st.button("🏆 Finish Game", type="primary"):
-                        # Check for players who need to take a shot (off by 2+ tricks)
-                        shot_players = []
                         current_round = st.session_state.current_round
-                        for player in st.session_state.players:
-                            bid = st.session_state.game_data[current_round][player]['bid'] or 0
-                            tricks = st.session_state.game_data[current_round][player]['tricks'] or 0
-                            if abs(bid - tricks) >= 2:
-                                shot_players.append(player)
-                        
-                        st.session_state.shot_players = shot_players
+                        st.session_state.shot_players = get_shot_players(current_round)
                         
                         # Generate roast for final round
-                        if st.session_state.enable_roasts and st.session_state.nvidia_api_key and st.session_state.api_verified:
+                        if st.session_state.enable_roasts:
                             with st.spinner("🔥 Generating final roasts... (this may take up to 90 seconds)"):
-                                roast = generate_roasts(current_round)
-                                st.session_state.round_roasts[current_round] = roast if roast else "[No roast generated - API may have failed]"
-                        elif st.session_state.enable_roasts and not st.session_state.api_verified:
-                            st.session_state.round_roasts[current_round] = "[API not verified - please verify your API key]"
+                                generate_round_roast(current_round)
                         
                         st.session_state.game_finished = True
-                        st.session_state.show_celebration = True  # Trigger confetti
-                        st.session_state.pending_tab = 2  # Switch to Scoreboard on rerun
+                        st.session_state.show_celebration = True
+                        st.session_state.pending_tab = 2
                         st.rerun()
                 elif st.session_state.get('game_finished', False):
                     st.success("🏆 Game Complete! View results in Scoreboard tab.")
                 else:
                     st.info("Final Round! Enter all bids and tricks, then click Finish Game.")
     
-    # Show shot popup if there are players who need to take a shot
+    # Handle shot popup and roast display
+    prev_round = st.session_state.current_round - 1
+    has_roast = prev_round in st.session_state.round_roasts
+    
     if st.session_state.shot_players:
-        # Theme-aware colors for banners
-        if st.session_state.dark_mode:
-            banner_bg = "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
-            roast_bg = "linear-gradient(135deg, #2d1b69 0%, #11998e 100%)"
-            banner_text = "#FFFFFF"
-        else:
-            banner_bg = "linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%)"
-            roast_bg = "linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)"
-            banner_text = "#262730"
+        theme = get_theme_colors()
         
-        # Show roast first if available
-        prev_round = st.session_state.current_round - 1
-        if prev_round in st.session_state.round_roasts:
-            roast_text = st.session_state.round_roasts[prev_round]
-            st.markdown(
-                f"""<div style='background: {roast_bg}; 
-                             padding: 20px; border-radius: 15px; border: 2px solid #f39c12; 
-                             margin: 10px 0; box-shadow: 0 0 15px #f39c12;'>
-                    <h3 style='color: #f39c12; text-align: center; margin-bottom: 10px;'>🔥 Round {prev_round} Roast 🔥</h3>
-                    <p style='color: {banner_text}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
-                    </div>""",
-                unsafe_allow_html=True
-            )
+        if has_roast:
+            render_roast_popup(prev_round, st.session_state.round_roasts[prev_round], theme)
         
-        shot_html = ""
-        for player in st.session_state.shot_players:
-            player_color = st.session_state.player_colors.get(player, "#FF0000")
-            shot_html += f"<h2 style='color:{player_color}; text-align:center;'>🍺 {player.upper()} NEEDS TO TAKE A SHOT! 🍺</h2>"
+        shot_html = "".join(
+            f"<h2 style='color:{st.session_state.player_colors.get(p, '#FF0000')}; text-align:center;'>🍺 {p.upper()} NEEDS TO TAKE A SHOT! 🍺</h2>"
+            for p in st.session_state.shot_players
+        )
         
         st.markdown(
-            f"""<div style='background: {banner_bg}; 
+            f"""<div style='background: {theme['banner_bg']}; 
                          padding: 30px; border-radius: 15px; border: 3px solid #e94560; 
                          margin: 20px 0; box-shadow: 0 0 20px #e94560;'>
                 {shot_html}
@@ -2736,36 +1829,15 @@ else:
         
         if st.button("✅ Acknowledged - Shots Taken!", type="primary"):
             st.session_state.shot_players = []
-            # Clear the roast for previous round
-            prev_round = st.session_state.current_round - 1
-            if prev_round in st.session_state.round_roasts:
+            if has_roast:
                 del st.session_state.round_roasts[prev_round]
             st.rerun()
     
-    # Show roast popup even if no shot players (when there's a pending roast)
-    elif not st.session_state.shot_players:
-        prev_round = st.session_state.current_round - 1
-        if prev_round in st.session_state.round_roasts:
-            # Theme-aware colors
-            if st.session_state.dark_mode:
-                roast_bg = "linear-gradient(135deg, #2d1b69 0%, #11998e 100%)"
-                roast_text_color = "#FFFFFF"
-            else:
-                roast_bg = "linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)"
-                roast_text_color = "#262730"
-            roast_text = st.session_state.round_roasts[prev_round]
-            st.markdown(
-                f"""<div style='background: {roast_bg}; 
-                             padding: 20px; border-radius: 15px; border: 2px solid #f39c12; 
-                             margin: 10px 0; box-shadow: 0 0 15px #f39c12;'>
-                    <h3 style='color: #f39c12; text-align: center; margin-bottom: 10px;'>🔥 Round {prev_round} Roast 🔥</h3>
-                    <p style='color: {roast_text_color}; text-align: center; font-size: 1.1em; font-style: italic;'>"{roast_text}"</p>
-                    </div>""",
-                unsafe_allow_html=True
-            )
-            if st.button("😂 Nice one! Continue", type="primary"):
-                del st.session_state.round_roasts[prev_round]
-                st.rerun()
+    elif has_roast:
+        render_roast_popup(prev_round, st.session_state.round_roasts[prev_round], get_theme_colors())
+        if st.button("😂 Clear Roast", type="primary"):
+            del st.session_state.round_roasts[prev_round]
+            st.rerun()
 
     if st.session_state.active_tab == 2:  # Scoreboard tab
         st.subheader("📊 Full Scoreboard")
@@ -2782,7 +1854,7 @@ else:
             if round_num in st.session_state.game_data:
                 row = {'Round': round_num}
                 for player in st.session_state.players:
-                    data = st.session_state.game_data[round_num].get(player, {'bid': None, 'tricks': None})
+                    data = st.session_state.game_data[round_num].get(player, EMPTY_ROUND_DATA)
                     bid = data['bid']
                     tricks = data['tricks']
                     
@@ -2833,7 +1905,7 @@ else:
                 
                 chart_data["Round"].append(round_num)
                 for player in st.session_state.players:
-                    data = st.session_state.game_data[round_num].get(player, {'bid': None, 'tricks': None})
+                    data = st.session_state.game_data[round_num].get(player, EMPTY_ROUND_DATA)
                     bid = data['bid']
                     tricks = data['tricks']
                     if bid is not None and tricks is not None:
@@ -2842,38 +1914,21 @@ else:
         
         if len(chart_data["Round"]) > 1:
             chart_df = pd.DataFrame(chart_data)
-            # Melt the dataframe for Altair
             chart_melted = chart_df.melt(id_vars=["Round"], var_name="Player", value_name="Score")
             
-            # Get colors for each player
             color_scale = alt.Scale(
                 domain=st.session_state.players,
                 range=[st.session_state.player_colors.get(p, DEFAULT_COLORS[i % len(DEFAULT_COLORS)]) 
                        for i, p in enumerate(st.session_state.players)]
             )
             
-            # Theme-aware chart colors
-            if st.session_state.dark_mode:
-                chart_bg = "#0e1117"
-                grid_color = "#444"
-                label_color = "#fafafa"
-            else:
-                chart_bg = "#ffffff"
-                grid_color = "#ddd"
-                label_color = "#262730"
-            
-            # Create Altair chart with custom colors and theme
+            theme = get_theme_colors()
             chart = alt.Chart(chart_melted).mark_line(point=True, strokeWidth=3).encode(
-                x=alt.X("Round:Q", title="Round", axis=alt.Axis(tickMinStep=1, labelColor=label_color, titleColor=label_color, gridColor=grid_color)),
-                y=alt.Y("Score:Q", title="Total Score", axis=alt.Axis(labelColor=label_color, titleColor=label_color, gridColor=grid_color)),
-                color=alt.Color("Player:N", scale=color_scale, legend=alt.Legend(title="Players", labelColor=label_color, titleColor=label_color)),
+                x=alt.X("Round:Q", title="Round", axis=alt.Axis(tickMinStep=1, labelColor=theme['text_primary'], titleColor=theme['text_primary'], gridColor=theme['chart_grid'])),
+                y=alt.Y("Score:Q", title="Total Score", axis=alt.Axis(labelColor=theme['text_primary'], titleColor=theme['text_primary'], gridColor=theme['chart_grid'])),
+                color=alt.Color("Player:N", scale=color_scale, legend=alt.Legend(title="Players", labelColor=theme['text_primary'], titleColor=theme['text_primary'])),
                 tooltip=["Round", "Player", "Score"]
-            ).properties(
-                height=400,
-                background=chart_bg
-            ).configure_view(
-                strokeWidth=0
-            ).interactive()
+            ).properties(height=400, background=theme['bg_primary']).configure_view(strokeWidth=0).interactive()
             
             st.altair_chart(chart, use_container_width=True)
         else:
@@ -2881,49 +1936,32 @@ else:
         
         # Final results - only show when game is properly finished
         if st.session_state.get('game_finished', False):
-            # Show celebration effects only once (when flag is set)
             if st.session_state.get('show_celebration', False):
                 st.balloons()
                 st.snow()
             
-            # Analyze game stats if not already done
             if st.session_state.game_stats is None:
                 st.session_state.game_stats = analyze_game_stats()
-                # Only set celebration to False after stats are analyzed (first load)
                 st.session_state.show_celebration = False
             
             stats = st.session_state.game_stats
             analysis = stats['analysis']
+            theme = get_theme_colors()
             
-            # Build results HTML
             winner = sorted_players[0][0]
             winner_color = st.session_state.player_colors.get(winner, "#FFD700")
-            
-            results_html = ""
             medals = ["🥇", "🥈", "🥉"] + [""] * 10
-            for i, (player, score) in enumerate(sorted_players):
-                player_color = st.session_state.player_colors.get(player, "#FFFFFF")
-                if i == 0:
-                    results_html += f"<h1 style='color:{player_color}; text-align:center; margin:10px 0;'>{medals[i]} {player} - {score} pts 👑</h1>"
-                else:
-                    results_html += f"<h3 style='color:{player_color}; text-align:center; margin:5px 0;'>{medals[i]} {player} - {score} pts</h3>"
             
-            # Theme-aware colors for popups
-            if st.session_state.dark_mode:
-                popup_bg = "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
-                popup_text = "#FFFFFF"
-                popup_subtext = "#98D8C8"
-                card_bg = "linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)"
-            else:
-                popup_bg = "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%)"
-                popup_text = "#262730"
-                popup_subtext = "#495057"
-                card_bg = "linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)"
+            results_html = "".join(
+                f"<h1 style='color:{st.session_state.player_colors.get(p, '#FFFFFF')}; text-align:center; margin:10px 0;'>{medals[i]} {p} - {s} pts{' 👑' if i == 0 else ''}</h1>" if i == 0
+                else f"<h3 style='color:{st.session_state.player_colors.get(p, '#FFFFFF')}; text-align:center; margin:5px 0;'>{medals[i]} {p} - {s} pts</h3>"
+                for i, (p, s) in enumerate(sorted_players)
+            )
             
             # Celebration popup
             st.markdown(
                 f"""
-                <div style='background: {popup_bg}; 
+                <div style='background: {theme['popup_bg']}; 
                             padding: 40px; border-radius: 20px; 
                             border: 4px solid {winner_color}; 
                             margin: 30px 0; 
@@ -2932,13 +1970,13 @@ else:
                     <h1 style='color: #FFD700; font-size: 3em; margin-bottom: 20px;'>
                         🎉🏆 GAME OVER! 🏆🎉
                     </h1>
-                    <h2 style='color: {popup_text}; margin-bottom: 30px;'>
+                    <h2 style='color: {theme['text_primary']}; margin-bottom: 30px;'>
                         🧙 The Wizard Tournament Has Concluded! 🧙
                     </h2>
                     <div style='background: rgba(128,128,128,0.1); padding: 20px; border-radius: 15px; margin: 20px 0;'>
                         {results_html}
                     </div>
-                    <p style='color: {popup_subtext}; font-size: 1.2em; margin-top: 20px;'>
+                    <p style='color: {theme['stat_text']}; font-size: 1.2em; margin-top: 20px;'>
                         🎊 Congratulations to all players! 🎊
                     </p>
                 </div>
@@ -2955,39 +1993,36 @@ else:
             for i, (player, score) in enumerate(sorted_players):
                 player_color = st.session_state.player_colors.get(player, "#808080")
                 a = analysis[player]
-                # Theme-aware stat text color
-                stat_text = "#98D8C8" if st.session_state.dark_mode else "#495057"
-                score_text = "#FFFFFF" if st.session_state.dark_mode else "#262730"
                 with stat_cols[i]:
                     st.markdown(
                         f"""
-                        <div style='background: {card_bg}; 
+                        <div style='background: {theme['card_bg']}; 
                                     padding: 15px; border-radius: 15px; 
                                     border: 3px solid {player_color}; 
                                     margin: 5px 0;'>
                             <h3 style='color: {player_color}; text-align: center; margin: 0 0 10px 0;'>
                                 {medals[i]} {player}
                             </h3>
-                            <p style='color: {score_text}; text-align: center; font-size: 1.5em; margin: 5px 0;'>
+                            <p style='color: {theme['text_primary']}; text-align: center; font-size: 1.5em; margin: 5px 0;'>
                                 {score} pts
                             </p>
                             <hr style='border-color: {player_color}40;'>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 🎯 Accuracy: <b>{a['accuracy']}%</b> ({a['correct_bids']}/{a['total_rounds']})
                             </p>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 🔥 Best Round: R{a['best_round']} (+{a['best_round_score']})
                             </p>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 💀 Worst Round: R{a['worst_round']} ({a['worst_round_score']})
                             </p>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 📈 Best 3-Round: +{a['max_3round_jump']}
                             </p>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 📉 Worst 3-Round: {a['max_3round_drop']}
                             </p>
-                            <p style='color: {stat_text}; font-size: 0.9em; margin: 5px 0;'>
+                            <p style='color: {theme['stat_text']}; font-size: 0.9em; margin: 5px 0;'>
                                 🏆 Led {a['times_in_lead']} rounds
                             </p>
                         </div>
@@ -3024,25 +2059,18 @@ else:
             
             # Filter out None awards and display
             awards = [a for a in awards if a is not None]
-            # Theme-aware award colors
-            if st.session_state.dark_mode:
-                award_bg = "linear-gradient(135deg, #2d1b69 0%, #11998e 100%)"
-                award_stat_text = "#FFFFFF"
-            else:
-                award_bg = "linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%)"
-                award_stat_text = "#262730"
             for i, (title, player, stat) in enumerate(awards):
                 player_color = st.session_state.player_colors.get(player, "#FFD700")
                 with award_cols[i % 4]:
                     st.markdown(
                         f"""
-                        <div style='background: {award_bg}; 
+                        <div style='background: {theme['roast_bg']}; 
                                     padding: 15px; border-radius: 10px; 
                                     border: 2px solid {player_color}; 
                                     margin: 5px 0; text-align: center;'>
                             <h4 style='color: #FFD700; margin: 0;'>{title}</h4>
                             <p style='color: {player_color}; font-size: 1.2em; margin: 5px 0; font-weight: bold;'>{player}</p>
-                            <p style='color: {award_stat_text}; font-size: 0.9em; margin: 0;'>{stat}</p>
+                            <p style='color: {theme['text_primary']}; font-size: 0.9em; margin: 0;'>{stat}</p>
                         </div>
                         """,
                         unsafe_allow_html=True
